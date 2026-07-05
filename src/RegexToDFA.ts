@@ -532,7 +532,7 @@ export class RegexToDFA {
                 // get(...) is guaranteed to exist above, use non-null assertion and add directly
                 this.regexCharacters.get(node.getValue())!.add(this.nodeIndex);
 			}
-            node.setFinalLeadNode(false);
+            node.setFinalLeafNode(false);
 			// Increment nodeIndex so that the next leaf node will have a different index.
 			this.nodeIndex++;
 		} else if (node.getType() === NodeType.OR) {
@@ -628,9 +628,27 @@ export class RegexToDFA {
 		}
 	}
 
-    
+    /**
+     * Convert a fixed-length RegEx into a Discrete Finite Automaton (DFA) using the following algorithm:
+     * https://www.geeksforgeeks.org/compiler-design/regular-expression-to-dfa/
+     * @param regex The input RegEx.
+     * @returns A Discrete Finite Automaton which is equivalent to the provided RegEx.
+     */
     convertRegexToDFA(regex: string): DFA {
         this.regex = regex;
-        return new DFA();
+        // REgex validation and simplification.
+        this.basicRegexValidation();
+        this.replaceShorthandCharacters();
+        this.removeRegexCountsAndCharacterClasses();
+
+        // Building the syntax tree (intermediate step).
+        const syntaxTree: SyntaxTreeNode = this.regexToSyntaxTree(`${this.regex}#`);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
+        this.setNodeProperties(syntaxTree);
+        this.calculateFollowpos(syntaxTree);
+        
+        // Build the DFA.
+        this.populateStatesAndTransitions(syntaxTree);
+        return this.DFA;
     }
 }

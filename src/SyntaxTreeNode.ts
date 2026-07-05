@@ -74,7 +74,7 @@ export class SyntaxTreeNode{
         return this.finalLeafNode;
     }
 
-    setFinalLeadNode(finalLeafNode: boolean): void {
+    setFinalLeafNode(finalLeafNode: boolean): void {
         this.finalLeafNode = finalLeafNode;
     }
 

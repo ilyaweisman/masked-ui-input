@@ -1,5 +1,6 @@
 import { test, describe, expect } from '@jest/globals';
 import { RegexToDFA } from '../RegexToDFA';
+import { DFA } from '../DFA';
 import { NodeType, SyntaxTreeNode } from '../SyntaxTreeNode';
 
 describe('Print a Syntax Tree', () => {
@@ -31,7 +32,7 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
     test('Null Syntax Tree', () => {
         const regexToDFA: RegexToDFA = new RegexToDFA('');
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('#')
-        syntaxTree.getRight()?.setFinalLeadNode(true);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
         syntaxTree.printSyntaxTree(true);
 
@@ -44,7 +45,7 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
     test('Print a single character Syntax Tree', () => {
         const regexToDFA: RegexToDFA = new RegexToDFA('');
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('a#')
-        syntaxTree.getRight()?.setFinalLeadNode(true);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
         syntaxTree.printSyntaxTree(true);
 
@@ -60,7 +61,7 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
     test('Print a simple OR Syntax Tree', () => {
         const regexToDFA: RegexToDFA = new RegexToDFA('');
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('A|B#')
-        syntaxTree.getRight()?.setFinalLeadNode(true);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
         syntaxTree.printSyntaxTree(true);
 
@@ -77,7 +78,7 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
     test('Print a simple CAT Syntax Tree', () => {
         const regexToDFA: RegexToDFA = new RegexToDFA('');
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('ab#')
-        syntaxTree.getRight()?.setFinalLeadNode(true);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
         syntaxTree.printSyntaxTree(true);
 
@@ -94,7 +95,7 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
     test('Print a complex Syntax Tree', () => {
         const regexToDFA: RegexToDFA = new RegexToDFA('');
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('A(1|2|3)[Z]#')
-        syntaxTree.getRight()?.setFinalLeadNode(true);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
         syntaxTree.printSyntaxTree(true);
 
@@ -114,7 +115,7 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
     test('Print another complex Syntax Tree', () => {
         const regexToDFA: RegexToDFA = new RegexToDFA('');
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(a|b)*abb#')
-        syntaxTree.getRight()?.setFinalLeadNode(true);
+        syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
         syntaxTree.printSyntaxTree(true);
 
@@ -131,5 +132,34 @@ describe('Print a Syntax Tree with Node Properties, Calculate followpos and gene
         regexToDFA.populateStatesAndTransitions(syntaxTree);
         console.log(regexToDFA.getDFA().getStates());
         regexToDFA.getDFA().printTransitionTable();
+    });
+});
+
+describe.only('Feed input characters into DFA', () => {
+    const regexToDFA: RegexToDFA = new RegexToDFA('');
+    const dfa: DFA = regexToDFA.convertRegexToDFA('\\d{3}');
+    dfa.printTransitionTable();
+    test('Blank input', () => {
+        expect(dfa.isPartialStringValid('')).toBe(true);
+    });
+    test('Single digit', () => {
+        expect(dfa.isPartialStringValid('4')).toBe(true);
+    });
+    test('Two more digits', () => {
+        expect(dfa.isPartialStringValid('98')).toBe(true);
+    });
+    test('A fourth digit', () => {
+        expect(dfa.isPartialStringValid('0')).toBe(false);
+    });
+    dfa.setCurrentStateNumber(0);
+    test('Five digits', () => {
+        expect(dfa.isPartialStringValid('01234')).toBe(false);
+    });
+    dfa.setCurrentStateNumber(0);
+    test('A non-digit character', () => {
+        expect(dfa.isPartialStringValid('a')).toBe(false);
+    });
+    test('Two digits followed by a non-digit character', () => {
+        expect(dfa.isPartialStringValid('63)')).toBe(false);
     });
 });
