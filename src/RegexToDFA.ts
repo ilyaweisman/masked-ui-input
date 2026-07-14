@@ -16,8 +16,8 @@ export class RegexToDFA {
     lowercaseLetters: string[] = this.alpha.map((x) => String.fromCharCode(x + 32));
     digits: string[] = Array.from(Array(10).keys()).map((x) => x.toString());
 
-    constructor(regex: string) {
-        this.regex = regex;
+    constructor() {
+        this.regex = '';
         this.nodeIndex = 1
         this.regexCharacters = new Map();
         this.followpos = new Map();
@@ -88,6 +88,11 @@ export class RegexToDFA {
      */
     replaceShorthandCharacters(): void {
         let rgx: string = this.regex;
+
+        if (rgx.charAt(0) === '|' || rgx.charAt(rgx.length - 1) === '|') {
+            throw new Error('RegEx must be fixed-length and therefore may not start or end with a | character.');
+        }
+
         // The only characters inside of character classes (with the exception of single characters) should be word characters,
         // namely A-Z, a-z, 0-9 and _.
         const error: string = `RegEx must not contain any escaped characters, except for the following shorthand character classes: \\\\d and \\\\w. 
@@ -157,7 +162,7 @@ export class RegexToDFA {
 
     /** 
      * In the RegEx, replace any bracket characters which are meant to be interpreted as literals with temporary characters.
-     * [, ], (, ), {, } replaced with \a, \b, \c, \d, \e and \f.
+     * [, ], (, ), {, }, | replaced with \a, \b, \c, \d, \e, \f and \g.
      * @param rgx The RegEx provided.
 	 * @returns The RegEx, with it's literal bracket characters replaced escaped characters.
      */
@@ -229,6 +234,12 @@ export class RegexToDFA {
                     }
                 }
                 leftBraceIndex = -1;
+            }
+            if (character === '|') {
+                if (insideCharacterClass) {
+                    rgx = `${rgx.substring(0, i)}\\g${rgx.substring(i + 1)}`;
+                    i++;
+                }
             }
             i++;
         }
@@ -320,7 +331,7 @@ export class RegexToDFA {
 			const lastBraceIndex: number = rgx.indexOf(']', braceIndex + 2);
 			// The contents of the character class.
 			let characterOptions: string = rgx.slice(braceIndex + 1, lastBraceIndex);
-            characterOptions = characterOptions.replaceAll('\\a', '[').replaceAll('\\b', ']').replaceAll('\\c', '(').replaceAll('\\d', ')').replaceAll('\\e', '{').replaceAll('\\f', '}');
+            characterOptions = this.substituteBracketsForEscapedCharacters(characterOptions);
 			let characterList: string[] = [];
             // Do not allow negated character classes.
             if (characterOptions.charAt(0) === '^') {
@@ -422,56 +433,79 @@ export class RegexToDFA {
 			root.setRight(nullNode);
 			return root;
 		}
-		// If the last character of the RegEx is a ], there should only be a single character in between the square brackets, or else a single escape character, 
-		// as all longer character classes have been expanded. Set the right node to be a leaf node with value that single character.
-		else if (lastCharacter === ']') { 
-			startIndex = lastCharacterIndex - 2;
-            if (rgx.charAt(startIndex) === '\\') {
-                startIndex--;
+
+        // Check if there are any | characters in the RegEx outside of brackets.
+        let pipeIndex: number = lastCharacterIndex;
+        let bracketCount: number = 0;
+        while (pipeIndex >= 0) {
+            if (rgx.charAt(pipeIndex) === ')') {
+                bracketCount++;
             }
-            const contents: string = this.substituteBracketsForEscapedCharacters(rgx.substring(startIndex + 1, lastCharacterIndex));
-			// If the whole RegEx is enclosed in square brackets then set the root node to be the character inside the square brackets.
-			if (startIndex === 0) {
-				root.setType(NodeType.LEAF);
-				root.setValue(contents);
-				return root;
-			}
-			// Otherwise, the right node is set to be the character inside the square brackets.
-			rightNode = new SyntaxTreeNode(contents, NodeType.LEAF);
-		}
-		// Otherwise, as long as the last characater is not a ')' it means that the last character is a standard character, or else part of an escaped character.
-		// Set the right node to be a leaf node with value that standard/escaped character.
-		else if (lastCharacter !== ')') {
-            if (lastCharacterIndex !== 0 && rgx.charAt(lastCharacterIndex - 1) === '\\') {
-                rightNode = new SyntaxTreeNode(this.substituteBracketsForEscapedCharacters(rgx.substring(lastCharacterIndex - 1, lastCharacterIndex + 1)), NodeType.LEAF);
-            } else {
-			    rightNode = new SyntaxTreeNode(lastCharacter, NodeType.LEAF);
+            if (rgx.charAt(pipeIndex) === '(') {
+                bracketCount--;
             }
-		}
-		// Otherwise, the last character must be a ')', in which case find the substring enclosed by the brackets.
-		// The right node is recursively calculated from this substring.
-		else {
-			let bracketCount: number = 1;
-			startIndex --;
-			while (startIndex >= 0 && bracketCount > 0) {
-				if (rgx.charAt(startIndex) === ')') {
-					bracketCount++;
-				}
-				if (rgx.charAt(startIndex) === '(') {
-					bracketCount--;
-				}
-				startIndex--;
-			}
-			startIndex++;
-			// If the whole RegEx is enclosed in brackets then return the recursively calculated node
-			// for the contents inside these brackets.
-			if (startIndex === 0) {
-				return this.regexToSyntaxTree(rgx.substring(startIndex + 1, lastCharacterIndex));
-			} 
-			// Otherwise, the right node is recursively calculated from the contents inside the brackets.
-			rightNode = this.regexToSyntaxTree(rgx.substring(startIndex + 1, lastCharacterIndex));
-			
-		}
+            if (rgx.charAt(pipeIndex) === '|' && bracketCount === 0) {
+                break;
+            }
+            pipeIndex--;
+        }
+        // If there are, the right node becomes the characters following this pipe.
+        if (pipeIndex !== -1) {
+            startIndex = pipeIndex + 1;
+            rightNode = this.regexToSyntaxTree(rgx.substring(startIndex));
+        }
+        else {
+            // If the last character of the RegEx is a ], there should only be a single character in between the square brackets, or else a single escape character, 
+            // as all longer character classes have been expanded. Set the right node to be a leaf node with value that single character.
+            if (lastCharacter === ']') { 
+                startIndex = lastCharacterIndex - 2;
+                if (rgx.charAt(startIndex) === '\\') {
+                    startIndex--;
+                }
+                const contents: string = this.substituteBracketsForEscapedCharacters(rgx.substring(startIndex + 1, lastCharacterIndex));
+                // If the whole RegEx is enclosed in square brackets then set the root node to be the character inside the square brackets.
+                if (startIndex === 0) {
+                    root.setType(NodeType.LEAF);
+                    root.setValue(contents);
+                    return root;
+                }
+                // Otherwise, the right node is set to be the character inside the square brackets.
+                rightNode = new SyntaxTreeNode(contents, NodeType.LEAF);
+            }
+            // Otherwise, the last character must be a ')', in which case find the substring enclosed by the brackets.
+            // The right node is recursively calculated from this substring.
+            else if (lastCharacter === ')') {
+                bracketCount = 1;
+                startIndex --;
+                while (startIndex >= 0 && bracketCount > 0) {
+                    if (rgx.charAt(startIndex) === ')') {
+                        bracketCount++;
+                    }
+                    if (rgx.charAt(startIndex) === '(') {
+                        bracketCount--;
+                    }
+                    startIndex--;
+                }
+                startIndex++;
+                // If the whole RegEx is enclosed in brackets then return the recursively calculated node
+                // for the contents inside these brackets.
+                if (startIndex === 0) {
+                    return this.regexToSyntaxTree(rgx.substring(startIndex + 1, lastCharacterIndex));
+                } 
+                // Otherwise, the right node is recursively calculated from the contents inside the brackets.
+                rightNode = this.regexToSyntaxTree(rgx.substring(startIndex + 1, lastCharacterIndex));
+                
+            }
+            // Otherwise, as long as the last characater is not a ')' it means that the last character is a standard character, or else part of an escaped character.
+            // Set the right node to be a leaf node with value that standard/escaped character.
+            else {
+                if (lastCharacterIndex !== 0 && rgx.charAt(lastCharacterIndex - 1) === '\\') {
+                    rightNode = new SyntaxTreeNode(this.substituteBracketsForEscapedCharacters(rgx.substring(lastCharacterIndex - 1, lastCharacterIndex + 1)), NodeType.LEAF);
+                } else {
+                    rightNode = new SyntaxTreeNode(lastCharacter, NodeType.LEAF);
+                }
+            }
+        }
 		root.setRight(rightNode);
 		// If the second-last character is a '|', then we have an OR node, and the left node is recursively
 		// calculated using the third-last character backwards.
@@ -489,12 +523,12 @@ export class RegexToDFA {
 	} 
 
     /** 
-     * Put back [, ], (, ), {, and } in place of \a, \b, \c, \d, \e and \f.
+     * Put back [, ], (, ), {, }, and | in place of \a, \b, \c, \d, \e, \f and \g.
      * @param rgx The RegEx provided.
      * @returns The RegEx with the escaped characters replaced by bracket characters.
      */
     public substituteBracketsForEscapedCharacters(rgx: string): string {
-        return rgx.replaceAll('\\a', '[').replaceAll('\\b', ']').replaceAll('\\c', '(').replaceAll('\\d', ')').replaceAll('\\e', '{').replaceAll('\\f', '}');
+        return rgx.replaceAll('\\a', '[').replaceAll('\\b', ']').replaceAll('\\c', '(').replaceAll('\\d', ')').replaceAll('\\e', '{').replaceAll('\\f', '}').replaceAll('\\g', '|');
         
     }
 
@@ -642,10 +676,16 @@ export class RegexToDFA {
         this.removeRegexCountsAndCharacterClasses();
 
         // Building the syntax tree (intermediate step).
-        const syntaxTree: SyntaxTreeNode = this.regexToSyntaxTree(`${this.regex}#`);
+        const syntaxTree: SyntaxTreeNode = this.regexToSyntaxTree(`(${this.regex})#`);
+        if (!syntaxTree.verifyOrNodesAreBalanced()) {
+            throw new Error(`RegEx contains an unbalanced OR (|) operator, which means that strings 
+                accepted by the RegEx can have varying lengths. The RegEx must be of fixed length.`);
+        }
         syntaxTree.getRight()?.setFinalLeafNode(true);
         this.setNodeProperties(syntaxTree);
         this.calculateFollowpos(syntaxTree);
+
+        syntaxTree.printSyntaxTree();
         
         // Build the DFA.
         this.populateStatesAndTransitions(syntaxTree);

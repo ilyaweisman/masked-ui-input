@@ -7,13 +7,11 @@ import { State } from "./State";
 export class DFA {
     private states: Array<State>;
     private transitions: Map<string, State>;
-    private currentStateNumber: number;
     private inputCharacters: Array<String>;
 
     constructor() {
         this.states = [];
         this.transitions = new Map();
-        this.currentStateNumber = 0;
         this.inputCharacters = [];
     }
 
@@ -31,10 +29,6 @@ export class DFA {
 
     setTransitions(transitions: Map<string, State>): void {
         this.transitions = transitions;
-    }
-
-    setCurrentStateNumber(currentStateNumber: number): void {
-        this.currentStateNumber = currentStateNumber;
     }
 
     /**
@@ -78,18 +72,19 @@ export class DFA {
 	 */
 	public isPartialStringValid(partialString: string) {
 		// Traverse through the Deterministic Finite Automaton (DFA) using the partial string and the transition table.
+        let currentStateNumber: number = 0;
 		for (let i = 0; i < partialString.length; i++) {
-			const transKey = `${this.currentStateNumber}${partialString.charAt(i)}`;
+			const transKey = `${currentStateNumber}${partialString.charAt(i)}`;
 			// If there is no transition in the transition table which matches 
 			// the next character in the partial string, then the string is not valid.
 			if (!this.transitions.get(transKey)) {
 				return false;
 			}
-			this.currentStateNumber = this.transitions.get(transKey)!.getId();
+			currentStateNumber = this.transitions.get(transKey)!.getId();
 		}
 		// If the automaton ends up in a trap state, we know that the partial string cannot be valid.
         // NOTE: Since this is a fixed length DFA, the final state can never be a trap state.
-		if (this.inTrapState(this.currentStateNumber)) {
+		if (this.inTrapState(currentStateNumber)) {
 			return false;
 		}
 		return true;
@@ -103,7 +98,8 @@ export class DFA {
 	 */
 	public inTrapState(stateNumber: number) {
 		// Check each transition in the transition table from the state defined by stateNumber.
-		for (const char of Object.keys(this.getInputCharacters())) {
+        const inputCharacters: Array<String> = this.getInputCharacters();
+		for (const char of inputCharacters) {
 			const transKey = `${stateNumber}${char}`;
 			// If any transition leads to a state which is not the current state, the state defined by stateNumber cannot be a trap state. 
 			// Note that given that we produced a minimised DFA, there can not be any trap loops in the DFA.

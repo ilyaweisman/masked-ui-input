@@ -2,7 +2,8 @@ import { expect, test, describe } from '@jest/globals';
 import { RegexToDFA } from '../RegexToDFA';
 
 describe('Basic RegEx Validation', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('abc');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
+  regexToDFA.setRegex('abc');
   test('Valid RegEx passes validation', () => {
     regexToDFA.basicRegexValidation();
     expect(regexToDFA.getRegex()).toBe('abc');
@@ -28,7 +29,7 @@ describe('Basic RegEx Validation', () => {
 
 
 describe('Replace shorthand characters in a RegEx', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
   test('Shorthand characters are replaced correctly - blank RegEx', () => {
     regexToDFA.replaceShorthandCharacters();
     expect(regexToDFA.getRegex()).toBe('');
@@ -87,7 +88,7 @@ describe('Replace shorthand characters in a RegEx', () => {
 
 
 describe('Replace literal bracket characters', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
   test('Literal ] outside character class is replaced with \\b', () => {
     expect(regexToDFA.replaceLiteralBracketCharacters(']')).toBe('\\b');
   });
@@ -124,7 +125,7 @@ describe('Replace literal bracket characters', () => {
 });
 
 describe('Remove RegEx Counts', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
   test('Empty RegEx', () => {
     expect(regexToDFA.removeRegexCounts('')).toBe('');
   });
@@ -167,7 +168,7 @@ describe('Remove RegEx Counts', () => {
 });
 
 describe('Remove Character Classes', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
   test('Single character class is preserved', () => {
     expect(regexToDFA.removeCharacterClasses('[!]')).toBe('[!]');
   });
@@ -210,7 +211,7 @@ describe('Remove Character Classes', () => {
 });
 
 describe('Expand Range', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
   test('0-9 expands to all digits', () => {
     const result = regexToDFA.expandRange('0-9');
     expect(result).toEqual(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -245,7 +246,7 @@ describe('Expand Range', () => {
 });
 
 describe('Remove Regex Counts and Character Classes', () => {
-  const regexToDFA: RegexToDFA = new RegexToDFA('');
+  const regexToDFA: RegexToDFA = new RegexToDFA();
   test('Empty RegEx', () => {
     regexToDFA.setRegex('');
     regexToDFA.removeRegexCountsAndCharacterClasses();

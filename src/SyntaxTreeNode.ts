@@ -78,6 +78,49 @@ export class SyntaxTreeNode{
         this.finalLeafNode = finalLeafNode;
     }
 
+    /**
+     * Verifies whether all OR nodes in the subtree rooted at this node are balanced, 
+     * meaning that all children of an OR node have equivalent numbers of leaf nodes.
+     */
+    verifyOrNodesAreBalanced(): boolean {
+        const balance: number = this.calculateOrNodesBalance(this);
+        return balance !== Infinity;
+    }
+
+    /**
+     * Calculates the balance of OR nodes in the subtree rooted at the given node.
+     * @param node The root node of the subtree to evaluate.
+     * @returns The balance of OR nodes, or Infinity if they are unbalanced.
+     */
+    private calculateOrNodesBalance(node: SyntaxTreeNode): number {
+        if (node.getType() === NodeType.NULL) {
+            return 0;
+        }
+        if (node.getType() === NodeType.LEAF) {
+            return 1;
+        }
+        else if (node.getType() !== NodeType.OR) {
+            return this.calculateOrNodesBalance(node.getLeft()!) + this.calculateOrNodesBalance(node.getRight()!);
+        }
+        else { // OR node
+            const children: Array<SyntaxTreeNode> = [node.getRight()!];
+            let leftChild: SyntaxTreeNode = node.getLeft()!;
+            while (leftChild.getType() === NodeType.OR) {
+                children.push(leftChild.getRight()!);
+                leftChild = leftChild.getLeft()!;
+            }
+            children.push(leftChild);
+            const balance: number = this.calculateOrNodesBalance(children[0]);
+            for (const child of children.slice(1)) {
+                const childBalance: number = this.calculateOrNodesBalance(child);
+                if (childBalance !== balance) {
+                    return Infinity; // Indicates an unbalanced OR node
+                }
+            }
+            return balance;
+        }
+    }
+
 
     /**
      * Prints the SyntaxTreeNode and its subtree using depth-first traversal.
