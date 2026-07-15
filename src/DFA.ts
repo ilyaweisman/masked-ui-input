@@ -53,9 +53,11 @@ export class DFA {
         let columnCount: number = 0;
         this.transitions.forEach((state, transitionKey) => {
             if (columnCount % numberOfColumns === 0) {
-                table += `     ${transitionKey.substring(0, transitionKey.length - 1)} `;
+                const stateNumber: string = transitionKey.substring(0, transitionKey.length - 1);
+                const spaces: string = ' '.repeat(Math.max(0, 6 - stateNumber.length));
+                table += `${spaces}${stateNumber} `;
             }
-            table += `| ${state.getId()} `
+            table += `| ${state.getId()}${(state.getId() < 10 ? ' ' : '')}`;
             columnCount++;
             if (columnCount % numberOfColumns === 0) {
                 table += `\n${horizontalLine}\n`;

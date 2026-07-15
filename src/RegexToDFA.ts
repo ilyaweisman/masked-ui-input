@@ -684,8 +684,6 @@ export class RegexToDFA {
         syntaxTree.getRight()?.setFinalLeafNode(true);
         this.setNodeProperties(syntaxTree);
         this.calculateFollowpos(syntaxTree);
-
-        syntaxTree.printSyntaxTree();
         
         // Build the DFA.
         this.populateStatesAndTransitions(syntaxTree);
