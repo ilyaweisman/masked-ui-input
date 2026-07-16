@@ -3,6 +3,9 @@ import { SetOperations } from "./SetOperations";
 import { State } from "./State";
 import { NodeType, SyntaxTreeNode } from "./SyntaxTreeNode";
 
+/**
+ * Class which converts a fixed-length RegEx into a DFA.
+ */
 export class RegexToDFA {
     private regex: string;
     private nodeIndex: number;
@@ -93,46 +96,72 @@ export class RegexToDFA {
             throw new Error('RegEx must be fixed-length and therefore may not start or end with a | character.');
         }
 
-        // The only characters inside of character classes (with the exception of single characters) should be word characters,
-        // namely A-Z, a-z, 0-9 and _.
-        const error: string = `RegEx must not contain any escaped characters, except for the following shorthand character classes: \\\\d and \\\\w. 
-            Any literal backslash characters in your regex should be placed as a single character inside of a character class.`;
+        if (rgx.includes('\\D') || rgx.includes('\\W') || rgx.includes('\\s') || rgx.includes('\\S')) {
+            throw new Error(`RegEx contains one of the following character classes: \\D, \\W, \\s or \\S. 
+                These character classes are not permitted, as they allow for a free choice in special characters at a given position.`);
+        }
 
-        let ind: number = 0;
         let insideBrackets: boolean = false;
+        let bracketIndex: number = -1;
+        let addADash: boolean = false;
+        let replaceCharcaterClassWithRightBracket: boolean = false;
+        let ind: number = 0;
         // Replace shorthand characters outside of character classes with a character class, e.g. \\d -> [0-9].
         // Replace shorthand characters inside of character classes with a range, e.g. [a\\dc] -> [a0-9c].
         // Replace all full stops (.) outside of character classes with [A-Za-z0-9_].
-        while (ind < rgx.length) {
+       while (ind < rgx.length) {
             const char: string = rgx.charAt(ind);
             if (char === '[') {
+                if (!insideBrackets) {
+                    bracketIndex = ind;
+                }
                 insideBrackets = true;
             }
             if (char === ']') {
+                if (replaceCharcaterClassWithRightBracket) {
+                    rgx = `${rgx.substring(0, bracketIndex)}(${rgx.substring(bracketIndex, ind + 1)}|])${rgx.substring(ind + 1)}`;
+                    replaceCharcaterClassWithRightBracket = false;
+                }
+                else if (addADash) {
+                    rgx = `${rgx.substring(0, ind)}-${rgx.substring(ind)}`;
+                    addADash = false;
+                }
                 insideBrackets = false;
             }
             if (char === '\\') {
-                if (ind === rgx.length - 1) {
-                    throw new Error(error)
-                }
                 const charAfter: string = rgx.charAt(ind + 1);
+                // Ignore escaped backslash - there is no other way of representing this, so we have to account 
+                // for it in the syntax tree code instead.
+                if (charAfter === '\\') {
+                    ind += 2;
+                    continue;
+                }
+                let replacement: string = charAfter;
                 if (charAfter === 'd') {
-                    const replacement: string = insideBrackets ? '0-9' : '[0-9]';
-                    rgx = `${rgx.substring(0, ind)}${replacement}${rgx.substring(ind + 2)}`;
+                    replacement = insideBrackets ? '0-9' : '[0-9]';
                 }
                 else if (charAfter === 'w') {
-                    const replacement: string = insideBrackets ? 'A-Za-z0-9_' : '[A-Za-z0-9_]';
-                    rgx = `${rgx.substring(0, ind)}${replacement}${rgx.substring(ind + 2)}`;
+                    replacement = insideBrackets ? 'A-Za-z0-9_' : '[A-Za-z0-9_]';
                 }
-                else if (charAfter == ']') {
-                    // Literal backslash character is allowed as long as it's a single character inside a character class.
-                    if (!(ind !== 0 && rgx.charAt(ind - 1) === '[')) {
-                        throw new Error(error)
+                // Need to account for special characters - and ] as they can have a different meaning inside of a character class.
+                else if (charAfter === '-' && insideBrackets) {
+                    replacement = '';
+                    addADash = true;
+                }
+                else if (charAfter === ']') {
+                    if (insideBrackets) {
+                        replacement = '';
+                        replaceCharcaterClassWithRightBracket = true;
+                    } else {
+                        replacement = ']';
                     }
                 }
-                else {
-                    throw new Error(error)
+                // All other escaped characters are literal characters. Replace these with a character class.
+                else {  
+                    replacement = insideBrackets ? charAfter : `[${charAfter}]`;
+                    insideBrackets = true;
                 }
+                rgx = `${rgx.substring(0, ind)}${replacement}${rgx.substring(ind + 2)}`;
             }
             if (char === '.' && !insideBrackets) {
                 throw new Error('RegEx may not contain . outside of a character class. Any non-word characters must be singly specified.');
@@ -150,13 +179,15 @@ export class RegexToDFA {
     
     /**
      * Replaces all the regex counts and character classes in the RegEx with their expanded forms.
+     * @returns the regex (still contains temporary escaped characters)
      */
-    public removeRegexCountsAndCharacterClasses(): void {
+    public removeRegexCountsAndCharacterClasses(): string {
         let rgx: string = this.replaceLiteralBracketCharacters(this.regex);
         rgx = this.removeRegexCounts(rgx);
         rgx = this.removeCharacterClasses(rgx); // TODO: Use this value of RegEx to convert to a syntax tree.
         // Replace the temporary characters with the curly braces again.
 		this.regex = this.substituteBracketsForEscapedCharacters(rgx);
+        return rgx;
     }
 
 
@@ -417,7 +448,7 @@ export class RegexToDFA {
 		const lastCharacterIndex: number = rgx.length - 1;
 		// If the RegEx consists of one character, or one escaped character, return a leaf node with value equal to that character.
 		if (lastCharacterIndex === 0 || (lastCharacterIndex === 1 && rgx.charAt(0) == '\\')) { 
-			return new SyntaxTreeNode(this.substituteBracketsForEscapedCharacters(rgx), NodeType.LEAF);
+			return new SyntaxTreeNode(this.substituteBracketsForEscapedCharacters(rgx).replaceAll('\\\\', '\\'), NodeType.LEAF);
 		}
 
         const root: SyntaxTreeNode = new SyntaxTreeNode('', NodeType.LEAF);
@@ -462,7 +493,7 @@ export class RegexToDFA {
                 if (rgx.charAt(startIndex) === '\\') {
                     startIndex--;
                 }
-                const contents: string = this.substituteBracketsForEscapedCharacters(rgx.substring(startIndex + 1, lastCharacterIndex));
+                const contents: string = this.substituteBracketsForEscapedCharacters(rgx.substring(startIndex + 1, lastCharacterIndex)).replaceAll('\\\\', '\\');
                 // If the whole RegEx is enclosed in square brackets then set the root node to be the character inside the square brackets.
                 if (startIndex === 0) {
                     root.setType(NodeType.LEAF);
@@ -500,7 +531,7 @@ export class RegexToDFA {
             // Set the right node to be a leaf node with value that standard/escaped character.
             else {
                 if (lastCharacterIndex !== 0 && rgx.charAt(lastCharacterIndex - 1) === '\\') {
-                    rightNode = new SyntaxTreeNode(this.substituteBracketsForEscapedCharacters(rgx.substring(lastCharacterIndex - 1, lastCharacterIndex + 1)), NodeType.LEAF);
+                    rightNode = new SyntaxTreeNode(this.substituteBracketsForEscapedCharacters(rgx.substring(lastCharacterIndex - 1, lastCharacterIndex + 1)).replaceAll('\\\\', '\\'), NodeType.LEAF);
                 } else {
                     rightNode = new SyntaxTreeNode(lastCharacter, NodeType.LEAF);
                 }
@@ -673,7 +704,7 @@ export class RegexToDFA {
         // REgex validation and simplification.
         this.basicRegexValidation();
         this.replaceShorthandCharacters();
-        this.removeRegexCountsAndCharacterClasses();
+        this.regex = this.removeRegexCountsAndCharacterClasses();
 
         // Building the syntax tree (intermediate step).
         const syntaxTree: SyntaxTreeNode = this.regexToSyntaxTree(`(${this.regex})#`);
@@ -687,6 +718,8 @@ export class RegexToDFA {
         
         // Build the DFA.
         this.populateStatesAndTransitions(syntaxTree);
+        this.DFA.generateSetOfTrapStates();
+
         return this.DFA;
     }
 }

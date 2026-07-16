@@ -7,12 +7,14 @@ import { State } from "./State";
 export class DFA {
     private states: Array<State>;
     private transitions: Map<string, State>;
-    private inputCharacters: Array<String>;
+    private inputCharacters: Array<string>;
+    private trapStates: Set<number> = new Set();
 
     constructor() {
         this.states = [];
         this.transitions = new Map();
         this.inputCharacters = [];
+        this.trapStates = new Set();
     }
 
     getStates(): Array<State> {
@@ -34,7 +36,7 @@ export class DFA {
     /**
      * Returns a list of input characters for the DFA, as defined in the transition table.
      */
-    getInputCharacters(): Array<String> {
+    getInputCharacters(): Array<string> {
         if (this.inputCharacters.length === 0) {
             this.inputCharacters = [...new Set([...this.transitions.keys()].map(element => element.charAt(element.length - 1)))];
         }
@@ -45,7 +47,7 @@ export class DFA {
      * Method to print the transitions map as a table.
      */
     printTransitionTable(): void {
-        const inputCharacters: Array<String> = this.getInputCharacters();
+        const inputCharacters: Array<string> = this.getInputCharacters();
         const numberOfColumns: number = inputCharacters.length;
         
         const horizontalLine = '-'.repeat(7 + 4 * numberOfColumns);
@@ -98,7 +100,7 @@ export class DFA {
 	 * @param stateNumber A number which identifies a state in the DFA. 
 	 * @returns Whether or not the state provided is a trap state.
 	 */
-	public inTrapState(stateNumber: number) {
+	private determineWhetherTrapState(stateNumber: number) {
 		// Check each transition in the transition table from the state defined by stateNumber.
         const inputCharacters: Array<String> = this.getInputCharacters();
 		for (const char of inputCharacters) {
@@ -111,5 +113,26 @@ export class DFA {
 		}
 		return true;
 	}
+
+    /**
+     * Generates a set of trap states for the DFA after the DFA is generated.
+     */
+    public generateSetOfTrapStates(): void {
+        for (let i: number = 0; i < this.states.length; i++) {
+            if (this.determineWhetherTrapState(i)) {
+                this.trapStates.add(i);
+            }
+        }
+    } 
+
+
+    /**
+	 * Determines whether or not a particular state of the DFA defined by stateNumber is a trap state.
+	 * @param stateNumber A number which identifies a state in the DFA. 
+	 * @returns Whether or not the state provided is a trap state.
+	 */
+    public inTrapState(stateNumber: number): boolean {
+        return this.trapStates.has(stateNumber);
+    }
 }
 

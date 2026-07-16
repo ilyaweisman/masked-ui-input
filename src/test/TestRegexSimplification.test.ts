@@ -44,27 +44,44 @@ describe('Replace shorthand characters in a RegEx', () => {
    regexToDFA.replaceShorthandCharacters();
     expect(regexToDFA.getRegex()).toBe('[A-Za-z0-9_]');
   });
+  test('Escaped dash', () => {
+   regexToDFA.setRegex('[1\\-9]');
+   regexToDFA.replaceShorthandCharacters();
+    expect(regexToDFA.getRegex()).toBe('[19-]');
+  });
+  test('Escaped closed square bracket', () => {
+   regexToDFA.setRegex('a\\]b');
+   regexToDFA.replaceShorthandCharacters();
+    expect(regexToDFA.getRegex()).toBe('a]b');
+  });
+  test('Escaped closed square bracket inside a character class', () => {
+   regexToDFA.setRegex('[a\\]b]');
+   regexToDFA.replaceShorthandCharacters();
+    expect(regexToDFA.getRegex()).toBe('([ab]|])');
+  });
   test('Shorthand characters are replaced correctly - nonsense RegEx', () => {
     regexToDFA.setRegex('97432\\wqpy61 83o5[v254j');
     regexToDFA.replaceShorthandCharacters();
     expect(regexToDFA.getRegex()).toBe('97432[A-Za-z0-9_]qpy61 83o5[v254j');
   });
   test('Invalid shorthand characters throw an error', () => {
-    regexToDFA.setRegex('\\d\\u\\s');
-    expect(() => regexToDFA.replaceShorthandCharacters()).toThrow(/^RegEx must not contain any escaped characters, except for the following shorthand character classes/);
+    regexToDFA.setRegex('\\d\\s');
+    expect(() => regexToDFA.replaceShorthandCharacters()).toThrow(/^RegEx contains one of the following character classes/);
   });
-  test('Backslash throws an error', () => {
-    regexToDFA.setRegex('\\');
-    expect(() => regexToDFA.replaceShorthandCharacters()).toThrow(/^RegEx must not contain any escaped characters, except for the following shorthand character classes/);
-  });
-  test('Singular backslash inside a character class is permitted', () => {
-    regexToDFA.setRegex('[\\]');
+  test('Escaped exclamation mark', () => {
+    regexToDFA.setRegex('[\\!]');
     regexToDFA.replaceShorthandCharacters();
-    expect(regexToDFA.getRegex()).toBe('[\\]');
+    expect(regexToDFA.getRegex()).toBe('[!]');
   });
-  test('Backslash in a character class is not permitted if it is not alone', () => {
-    regexToDFA.setRegex('[a\\]');
-    expect(() => regexToDFA.replaceShorthandCharacters()).toThrow(/^RegEx must not contain any escaped characters, except for the following shorthand character classes/);
+  test('Escaped asterisk', () => {
+    regexToDFA.setRegex('\\*');
+    regexToDFA.replaceShorthandCharacters();
+    expect(regexToDFA.getRegex()).toBe('[*]');
+  });
+  test('Escaped backslash', () => {
+    regexToDFA.setRegex('\\\\');
+    regexToDFA.replaceShorthandCharacters();
+    expect(regexToDFA.getRegex()).toBe('\\\\');
   });
   test('Full stop inside of a character class is permitted', () => {
     regexToDFA.setRegex('[a.c]');
