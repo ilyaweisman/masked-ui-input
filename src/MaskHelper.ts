@@ -5,6 +5,74 @@ import { DFA } from "./DFA";
  */
 export class MaskHelper {
 
+    /**
+     * Return the mask to be used in the Masked Input component.
+     * @param dfa The DFA
+     * @param inputMask The mask provided by the user
+     * @returns The mask to be used
+     */
+    public static getMask(dfa: DFA, inputMask: string | undefined) {
+        let mask: string = '';
+        if (inputMask) {
+            if (MaskHelper.isMaskValid(dfa, inputMask)) {
+                mask = inputMask;
+            } else {
+                console.warn('Invalid mask! The mask provided does not match with the RegEx provided. Generating a mask to use instead...');
+                mask = MaskHelper.generateMask(dfa);
+            }
+        } else {
+            mask = MaskHelper.generateMask(dfa);
+        }
+        return mask;
+    }
+
+    /**
+     * Checks whether the mask provided matches the RegEx/DFA provided. Namely, do the special characters and their positions in the string correspond?
+     * @param dfa The DFA
+     * @param mask The mask provided
+     * @returns Whether the mask is valid for the DFA
+     */
+    public static isMaskValid(dfa: DFA, mask: string): boolean {
+        let currentStateNumbers: Set<number> = new Set([0]);
+        let acceptableCharacters: string = this.findNextAcceptableCharacters(dfa, currentStateNumbers);
+        let characterIndex = 0;
+
+        while (acceptableCharacters !== '') {
+            // Check that the mask is not shorter than the strings accepted by the DFA
+            if (characterIndex >= mask.length) {
+                return false;
+            }
+            // If the only acceptable character after N transitions of the DFA is a special character, compare it with the corresponding character in the mask.
+            // If they do not match, return false. 
+            if (acceptableCharacters.length === 1 && /^\W$/.test(acceptableCharacters.charAt(0))) {
+                if (acceptableCharacters.charAt(0) !== mask.charAt(characterIndex)) {
+                    return false;
+                }
+            } 
+            // Otherwise, if the mask contains a special character at position N, but the DFA doesn't, return false.
+            else if (/^\W$/.test(mask.charAt(characterIndex))) {
+                return false;
+            }
+
+            const nextStateNumbers: Set<number> = new Set();
+            for (const stateNumber of currentStateNumbers) {
+                for (const char of acceptableCharacters) {
+                    const nextStateNumber: number = dfa.getTransitions().get(`${stateNumber}${char}`)!.getId();
+                    nextStateNumbers.add(nextStateNumber);
+                }
+            }
+            currentStateNumbers = nextStateNumbers;
+            acceptableCharacters = this.findNextAcceptableCharacters(dfa, currentStateNumbers);
+            characterIndex++;
+        }
+        // Test whether the length of the RegEx matches the length of the mask.
+        if (characterIndex !== mask.length) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     /**
      * Generates a generic mask based on the provided fixed-length DFA.
@@ -49,10 +117,10 @@ export class MaskHelper {
     }
 
     /**
-     * Finds the next acceptable characters for a given state in the DFA.
+     * Finds the next acceptable characters for given states in the DFA.
      * @param dfa The DFA
-     * @param stateNumber The state number
-     * @returns The acceptable characters for the given state concatenated together
+     * @param stateNumbers The state number
+     * @returns The acceptable characters for the given states concatenated together
      */
     private static findNextAcceptableCharacters(dfa: DFA, stateNumbers: Set<number>): string {
         let acceptableCharacters: Set<string> = new Set();

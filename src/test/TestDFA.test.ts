@@ -1,10 +1,10 @@
 import { test, describe, expect } from '@jest/globals';
-import { RegexToDFA } from '../RegexToDFA';
+import { RegexToDFAConverter } from '../RegexToDFA';
 import { DFA } from '../DFA';
 import { NodeType, SyntaxTreeNode } from '../SyntaxTreeNode';
 
 describe('Print a syntax tree', () => {
-    const regexToDFA: RegexToDFA = new RegexToDFA();
+    const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
     test('Null syntax tree', () => {
         expect(regexToDFA.regexToSyntaxTree('').getType()).toBe(NodeType.NULL);
     });
@@ -30,48 +30,48 @@ describe('Print a syntax tree', () => {
 
 describe('Generate syntax tree and verify OR nodes are balanced', () => {
     test('Null syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('()#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(true);
     });
     test('Leaf node', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(a)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(true);
     });
     test('Simplest OR node', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(A|B)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(true);
     });
     test('Two character on each side of OR', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(12|CD)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(true);
     });
     test('Multiple OR nodes', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(12|CD|EF|az)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(true);
     });
     test('Nested OR nodes', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('((0(1|2|3)|(1|2)(0|1|2|3)|3(0|1))|NA)#')
         syntaxTree.printSyntaxTree();
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(true);
     });
     test('Unbalanced OR nodes', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(a|bc)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(false);
     });
     test('Unbalanced second OR node', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(ab|cd|1)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(false);
     });
     test('Unbalanced nested OR node', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('((0(1|2|3)|(1|2)(0|1|2|3)|(0|1))|NA)#')
         expect(syntaxTree.verifyOrNodesAreBalanced()).toBe(false);
     });
@@ -79,7 +79,7 @@ describe('Generate syntax tree and verify OR nodes are balanced', () => {
 
 describe('Print a syntax tree with Node Properties, Calculate followpos and generate DFA', () => {
     test('Null syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('()#')
         syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
@@ -92,7 +92,7 @@ describe('Print a syntax tree with Node Properties, Calculate followpos and gene
         regexToDFA.getDFA().printTransitionTable();
     });
     test('Print a single character syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(a)#')
         syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
@@ -108,7 +108,7 @@ describe('Print a syntax tree with Node Properties, Calculate followpos and gene
         regexToDFA.getDFA().printTransitionTable();
     });
     test('Print a simple OR syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(A|B)#')
         syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
@@ -125,7 +125,7 @@ describe('Print a syntax tree with Node Properties, Calculate followpos and gene
         regexToDFA.getDFA().printTransitionTable();
     });
     test('Print a simple CAT syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(ab)#')
         syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
@@ -142,7 +142,7 @@ describe('Print a syntax tree with Node Properties, Calculate followpos and gene
         regexToDFA.getDFA().printTransitionTable();
     });
     test('Print a complex syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('(A(1|2|3)[Z])#')
         syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
@@ -162,7 +162,7 @@ describe('Print a syntax tree with Node Properties, Calculate followpos and gene
         regexToDFA.getDFA().printTransitionTable();
     });
     test('Print another complex syntax tree', () => {
-        const regexToDFA: RegexToDFA = new RegexToDFA();
+        const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
         const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree('((a|b)*abb)#')
         syntaxTree.getRight()?.setFinalLeafNode(true);
         regexToDFA.setNodeProperties(syntaxTree);
@@ -185,7 +185,7 @@ describe('Print a syntax tree with Node Properties, Calculate followpos and gene
 });
 
 describe('Feed input characters into DFA', () => {
-    const regexToDFA: RegexToDFA = new RegexToDFA();
+    const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
     const dfa: DFA = regexToDFA.convertRegexToDFA('\\d{2}[a-b]');
     dfa.printTransitionTable();
     test('Blank input', () => {
@@ -215,7 +215,7 @@ describe('Feed input characters into DFA', () => {
 });
 
 describe('Realistic example of a date input', () => {
-    const regexToDFA: RegexToDFA = new RegexToDFA();
+    const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
     const dfa: DFA = regexToDFA.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
     test('Blank input', () => {
         expect(dfa.isPartialStringValid('')).toBe(true);

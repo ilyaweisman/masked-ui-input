@@ -6,7 +6,7 @@ import { NodeType, SyntaxTreeNode } from "./SyntaxTreeNode";
 /**
  * Class which converts a fixed-length RegEx into a DFA.
  */
-export class RegexToDFA {
+export class RegexToDFAConverter {
     private regex: string;
     private nodeIndex: number;
     private regexCharacters: Map<string, Set<number>>;
