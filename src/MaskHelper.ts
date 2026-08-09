@@ -1,4 +1,5 @@
 import { DFA } from "./DFA";
+import { DFAHelper } from "./DFAHelper";
 
 /**
  * Class which provides helper methods for generating a mask based on a DFA.
@@ -34,8 +35,8 @@ export class MaskHelper {
      */
     public static isMaskValid(dfa: DFA, mask: string): boolean {
         let currentStateNumbers: Set<number> = new Set([0]);
-        let acceptableCharacters: string = this.findNextAcceptableCharacters(dfa, currentStateNumbers);
-        let characterIndex = 0;
+        let acceptableCharacters: string = DFAHelper.findNextAcceptableCharacters(dfa, currentStateNumbers);
+        let characterIndex: number = 0;
 
         while (acceptableCharacters !== '') {
             // Check that the mask is not shorter than the strings accepted by the DFA
@@ -62,7 +63,7 @@ export class MaskHelper {
                 }
             }
             currentStateNumbers = nextStateNumbers;
-            acceptableCharacters = this.findNextAcceptableCharacters(dfa, currentStateNumbers);
+            acceptableCharacters = DFAHelper.findNextAcceptableCharacters(dfa, currentStateNumbers);
             characterIndex++;
         }
         // Test whether the length of the RegEx matches the length of the mask.
@@ -83,7 +84,7 @@ export class MaskHelper {
         let mask: string = '';
 
         let currentStateNumbers: Set<number> = new Set([0]);
-        let acceptableCharacters: string = this.findNextAcceptableCharacters(dfa, currentStateNumbers);
+        let acceptableCharacters: string = DFAHelper.findNextAcceptableCharacters(dfa, currentStateNumbers);
         // Traverse all the paths through the DFA to find the acceptable characters for each input character position.
         // Based on the acceptable characters, we can substitute an X, A, 9 or special character for each input character position.
         // Putting these together will give us a generic mask for the DFA.
@@ -111,31 +112,8 @@ export class MaskHelper {
             }
 
             currentStateNumbers = nextStateNumbers;
-            acceptableCharacters = this.findNextAcceptableCharacters(dfa, currentStateNumbers);
+            acceptableCharacters = DFAHelper.findNextAcceptableCharacters(dfa, currentStateNumbers);
         }
         return mask;
     }
-
-    /**
-     * Finds the next acceptable characters for given states in the DFA.
-     * @param dfa The DFA
-     * @param stateNumbers The state number
-     * @returns The acceptable characters for the given states concatenated together
-     */
-    private static findNextAcceptableCharacters(dfa: DFA, stateNumbers: Set<number>): string {
-        let acceptableCharacters: Set<string> = new Set();
-        const inputCharacters: Array<string> = dfa.getInputCharacters();
-        for (const stateNumber of stateNumbers) {
-            for (const char of inputCharacters) {
-                const transitionKey: string = stateNumber.toString() + char;
-                const nextState: number = dfa.getTransitions().get(transitionKey)!.getId();
-                if (!dfa.inTrapState(nextState)) {
-                    acceptableCharacters.add(char);
-                }
-                
-            }
-        }
-        return Array.from(acceptableCharacters).join('');
-    }
-
 }

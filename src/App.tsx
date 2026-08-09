@@ -5,5 +5,5 @@ import MaskedInput from './MaskedInput'
  * @returns A masked input component. 
  */
 export default function App() {
-  return <MaskedInput regex={'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$'} mask={'DD/MM/YYY&'} style={{ fontSize: '40px' }} />
+  return <MaskedInput regex={'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$'} mask={'DD/MM/YYYY'} style={{ fontSize: '40px' }} />
 }

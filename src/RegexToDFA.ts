@@ -310,7 +310,7 @@ export class RegexToDFAConverter {
 
 			// Work out which of these three options applies.
 			let startSymbol: string | undefined;
-			const symbolBefore = rgx.charAt(braceIndex - 1);
+			const symbolBefore: string = rgx.charAt(braceIndex - 1);
 			if (symbolBefore === ')') {
 				startSymbol = '(';
 			} else if (symbolBefore === ']') {

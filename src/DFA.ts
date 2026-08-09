@@ -1,3 +1,5 @@
+import { DFAHelper } from "./DFAHelper";
+import { MaskHelper } from "./MaskHelper";
 import { State } from "./State";
 
 /**
@@ -8,7 +10,7 @@ export class DFA {
     private states: Array<State>;
     private transitions: Map<string, State>;
     private inputCharacters: Array<string>;
-    private trapStates: Set<number> = new Set();
+    private trapStates: Set<number>;
 
     constructor() {
         this.states = [];
@@ -50,7 +52,7 @@ export class DFA {
         const inputCharacters: Array<string> = this.getInputCharacters();
         const numberOfColumns: number = inputCharacters.length;
         
-        const horizontalLine = '-'.repeat(7 + 4 * numberOfColumns);
+        const horizontalLine: string = '-'.repeat(7 + 4 * numberOfColumns);
         let table: string = `       | Input \n${horizontalLine}\n State | ${inputCharacters.join(' | ')}\n${horizontalLine}\n`;
         let columnCount: number = 0;
         this.transitions.forEach((state, transitionKey) => {
@@ -74,10 +76,10 @@ export class DFA {
 	 * @param partialString The string of characters which is fed to the DFA.
 	 * @returns Whether or not the partial string provided is not rejected by the DFA
 	 */
-	public isPartialStringValid(partialString: string) {
+	public isPartialStringValid(partialString: string): boolean {
 		// Traverse through the Deterministic Finite Automaton (DFA) using the partial string and the transition table.
         let currentStateNumber: number = 0;
-		for (let i = 0; i < partialString.length; i++) {
+		for (let i: number = 0; i < partialString.length; i++) {
 			const transKey = `${currentStateNumber}${partialString.charAt(i)}`;
 			// If there is no transition in the transition table which matches 
 			// the next character in the partial string, then the string is not valid.
@@ -94,17 +96,57 @@ export class DFA {
 		return true;
 	}
 
+    /**
+	 * First strips the partial string of any special characters.
+     * Then determines whether the partial string is accepted by the DFA, inserting special characters into the string as necessary.
+     * Returns the partial string with special characters inserted if it is accepted by the DFA, or null if it is not accepted.
+	 * @param partialString The string of characters which is fed to the DFA.
+	 * @returns The modified partial string or null if it is not accepted.
+	 */
+	public getPartialStringIgnoreSpecialCharacters(partialString: string): string | null {
+        const strippedPartialString: string = partialString.replace(/\W/g, '');
+		// Traverse through the Deterministic Finite Automaton (DFA) using the partial string and the transition table.
+        let currentStateNumber: number = 0;
+        let index: number = 0;
+        let nextAcceptableCharacters: string = DFAHelper.findNextAcceptableCharacters(this, new Set([currentStateNumber]));
+        let resultString: string = '';
+		while (index < strippedPartialString.length || /^\W$/.test(nextAcceptableCharacters)) {
+            if (/^\W$/.test(nextAcceptableCharacters)) {
+                const transKey = `${currentStateNumber}${nextAcceptableCharacters}`;
+                currentStateNumber = this.transitions.get(transKey)!.getId();
+                resultString += nextAcceptableCharacters;
+            }
+            else {
+                const transKey = `${currentStateNumber}${strippedPartialString.charAt(index)}`;
+                // If there is no transition in the transition table which matches 
+                // the next character in the partial string, then the string is not valid.
+                if (!this.transitions.get(transKey)) {
+                    return null;
+                }
+                currentStateNumber = this.transitions.get(transKey)!.getId();
+                resultString += strippedPartialString.charAt(index);
+                index++;
+            }
+            nextAcceptableCharacters = DFAHelper.findNextAcceptableCharacters(this, new Set([currentStateNumber]));
+		}
+		// If the automaton ends up in a trap state, we know that the partial string cannot be valid.
+        // NOTE: Since this is a fixed length DFA, the final state can never be a trap state.
+		if (this.inTrapState(currentStateNumber)) {
+			return null;
+		}
+		return resultString;
+	}
 
     /**
 	 * Determines whether or not a particular state of the DFA defined by stateNumber is a trap state.
 	 * @param stateNumber A number which identifies a state in the DFA. 
 	 * @returns Whether or not the state provided is a trap state.
 	 */
-	private determineWhetherTrapState(stateNumber: number) {
+	private determineWhetherTrapState(stateNumber: number): boolean {
 		// Check each transition in the transition table from the state defined by stateNumber.
-        const inputCharacters: Array<String> = this.getInputCharacters();
+        const inputCharacters: Array<string> = this.getInputCharacters();
 		for (const char of inputCharacters) {
-			const transKey = `${stateNumber}${char}`;
+			const transKey: string = `${stateNumber}${char}`;
 			// If any transition leads to a state which is not the current state, the state defined by stateNumber cannot be a trap state. 
 			// Note that given that we produced a minimised DFA, there can not be any trap loops in the DFA.
 			if (this.transitions.get(transKey)?.getId() !== stateNumber) {

@@ -230,34 +230,34 @@ describe('Remove Character Classes', () => {
 describe('Expand Range', () => {
   const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
   test('0-9 expands to all digits', () => {
-    const result = regexToDFA.expandRange('0-9');
+    const result: string[] = regexToDFA.expandRange('0-9');
     expect(result).toEqual(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
   });
 
   test('A-Z expands to all uppercase letters', () => {
-    const result = regexToDFA.expandRange('A-Z');
+    const result: string[] = regexToDFA.expandRange('A-Z');
     expect(result).toHaveLength(26);
     expect(result[0]).toBe('A');
     expect(result[25]).toBe('Z');
   });
 
   test('Partial digit range 3-8', () => {
-    const result = regexToDFA.expandRange('3-8');
+    const result: string[] = regexToDFA.expandRange('3-8');
     expect(result).toEqual(['3', '4', '5', '6', '7', '8']);
   });
 
   test('Partial lowercase range b-f', () => {
-    const result = regexToDFA.expandRange('b-f');
+    const result: string[] = regexToDFA.expandRange('b-f');
     expect(result).toEqual(['b', 'c', 'd', 'e', 'f']);
   });
 
   test('Single element range 5-5', () => {
-    const result = regexToDFA.expandRange('5-5');
+    const result: string[] = regexToDFA.expandRange('5-5');
     expect(result).toEqual(['5']);
   });
 
   test('Two adjacent digits 4-5', () => {
-    const result = regexToDFA.expandRange('4-5');
+    const result: string[] = regexToDFA.expandRange('4-5');
     expect(result).toEqual(['4', '5']);
   });
 });

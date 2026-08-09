@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties, type ChangeEvent } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { RegexToDFAConverter } from './RegexToDFA';
 import { DFA } from './DFA';
 import { MaskHelper } from './MaskHelper';
+import { DFAHelper } from './DFAHelper';
 
 type MaskedInputProps = {
   regex: string,
@@ -26,25 +27,65 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
   const greyText = useRef<HTMLSpanElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  let backspaceNoHighlight: boolean = false;
+
   let greyColor: string = 'grey';
   if (inputRef.current) {
-    const styles = window.getComputedStyle(inputRef.current, '::placeholder');
+    const styles: CSSStyleDeclaration = window.getComputedStyle(inputRef.current, '::placeholder');
     greyColor = styles.getPropertyValue('color');
   }
 
-  // Only allow the value to be updated if the new value is a valid partial string of the DFA.
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let newValue: string;
-    if (dfa.isPartialStringValid(e.target.value)) {
-       setValue(e.target.value)
-       newValue = e.target.value;
-    } else {
-      setValue(value)
-      newValue = value;
-    }
-
+  const setNewValue: (newValue: string) => void = (newValue: string) => {
+    setValue(newValue);
     whiteText.current!.textContent = newValue;
     greyText.current!.textContent = mask.substring(newValue.length);
+  }
+
+
+  const handleFocus: React.FocusEventHandler<HTMLInputElement> = (e: React.FocusEvent<HTMLInputElement>) => {
+    let newValue: string | null = dfa.getPartialStringIgnoreSpecialCharacters(e.target.value);
+    if (newValue === null) {
+      newValue = value;
+    } 
+    setNewValue(newValue);
+  }
+
+  const handleBlur: React.FocusEventHandler<HTMLInputElement> = (e: React.FocusEvent<HTMLInputElement>) => {
+    const newValue: string = DFAHelper.removeLastCharacterIfSpecial(e.target.value);
+    setNewValue(newValue);
+  }
+
+  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      const target = e.target as HTMLInputElement;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+
+      if (start === end) {
+        backspaceNoHighlight = true;
+      }
+    }
+  }
+
+  // Only allow the value to be updated if the new value is a valid partial string of the DFA.
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let targetValue: string;
+    // If the input was a backspace with no highlights, and the character removed was a special character, then keep removing 
+    // characters from that position until a non-special character is removed.
+    if (backspaceNoHighlight) {
+      backspaceNoHighlight = false;
+      targetValue = DFAHelper.handleBackspace(e.target.value, value);
+    }
+    else {
+      targetValue = e.target.value;
+    }
+
+    let newValue: string | null = dfa.getPartialStringIgnoreSpecialCharacters(targetValue);
+
+    if (newValue === null) {
+        newValue = value;
+    } 
+    setNewValue(newValue);
   }
 
   return (
@@ -57,6 +98,9 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
         style={style}
         value={value}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder=""
       />
       <div className="backgroundBox" style={style}>

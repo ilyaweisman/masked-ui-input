@@ -134,7 +134,7 @@ export class SyntaxTreeNode{
      * @param depth The current depth in the tree for indentation.
      */
     private printSyntaxTreeHelper(depth: number, printNodeProperties: boolean): string {
-        const indent = '  '.repeat(depth);
+        const indent: string = '  '.repeat(depth);
         let rtn: string = `${indent}Node: type=${NodeType[this.type]}, value='${this.value}'` + (printNodeProperties ? 
             `, nullable=${this.nullable}, firstpos=[${Array.from(this.firstpos).join(', ')}], lastpos=[${Array.from(this.lastpos).join(', ')}]` : ``);
         
