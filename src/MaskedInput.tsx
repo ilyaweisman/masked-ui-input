@@ -19,15 +19,10 @@ type MaskedInputProps = {
 function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
   const [value, setValue] = useState<string>('');
 
-  const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
-  const dfa: DFA = regexToDFA.convertRegexToDFA(regex);
-  const mask: string = MaskHelper.getMask(dfa, inputMask);
-
+  const backgroundBox = useRef<HTMLDivElement | null>(null);
   const whiteText = useRef<HTMLSpanElement | null>(null);
   const greyText = useRef<HTMLSpanElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  let backspaceNoHighlight: boolean = false;
 
   let greyColor: string = 'grey';
   if (inputRef.current) {
@@ -35,16 +30,23 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
     greyColor = styles.getPropertyValue('color');
   }
 
+  let backspaceNoHighlight: boolean = false;
+
+  const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
+  let dfa: DFA | null = null;
+  let mask: string | null = null;
+
+  // Define functions.
   const setNewValue: (newValue: string) => void = (newValue: string) => {
     setValue(newValue);
     whiteText.current!.textContent = newValue;
-    greyText.current!.textContent = mask.substring(newValue.length);
+    greyText.current!.textContent = mask?.substring(newValue.length) || '';
   }
 
 
   const handleFocus: React.FocusEventHandler<HTMLInputElement> = (e: React.FocusEvent<HTMLInputElement>) => {
-    let newValue: string | null = dfa.getPartialStringIgnoreSpecialCharacters(e.target.value);
-    if (newValue === null) {
+    let newValue: string | null | undefined = dfa?.getPartialStringIgnoreSpecialCharacters(e.target.value);
+    if (newValue === null || newValue === undefined) {
       newValue = value;
     } 
     setNewValue(newValue);
@@ -80,13 +82,22 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
       targetValue = e.target.value;
     }
 
-    let newValue: string | null = dfa.getPartialStringIgnoreSpecialCharacters(targetValue);
+    let newValue: string | null | undefined = dfa?.getPartialStringIgnoreSpecialCharacters(targetValue);
 
-    if (newValue === null) {
+    if (newValue === null || newValue === undefined) {
         newValue = value;
     } 
     setNewValue(newValue);
   }
+
+
+  try {
+    dfa = regexToDFA.convertRegexToDFA(regex);
+    mask = MaskHelper.getMask(dfa, inputMask);
+  } catch (error) {
+    console.error(error);
+  }
+
 
   return (
     <div className="wrapper">
@@ -96,14 +107,14 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
         name="myInput"
         type="text"
         style={style}
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
+        value={dfa ? value : undefined}
+        onChange={dfa ? handleChange : undefined}
+        onKeyDown={dfa ? handleKeyDown : undefined}
+        onFocus={dfa ? handleFocus : undefined}
+        onBlur={dfa ? handleBlur : undefined}
         placeholder=""
       />
-      <div className="backgroundBox" style={style}>
+      <div className="backgroundBox" ref={backgroundBox} style={{...style, display: dfa ? 'inline-block' : 'none'}}>
         <span ref={whiteText} style={{ color: 'transparent' }}></span>
         <span ref={greyText} style={{ color: greyColor }}>{mask}</span>
       </div>
