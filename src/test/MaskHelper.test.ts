@@ -1,9 +1,9 @@
 import { test, describe, expect } from '@jest/globals';
-import { RegexToDFAConverter } from '../RegexToDFA';
+import { RegexToDFAConverter } from '../RegexToDFAConverter';
 import { DFA } from '../DFA';
 import { MaskHelper } from '../MaskHelper';
 
-describe.only('Test mask validity chacker', () => {
+describe('Test mask validity chacker', () => {
     const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
     const dfa: DFA = regexToDFA.convertRegexToDFA('\\d{2}/\\d{2}/\\d{4}');
     test('Valid mask for a basic date input', () => {

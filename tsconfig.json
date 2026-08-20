@@ -12,6 +12,6 @@
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },
-  "include": ["src", "src/test/TestRegexSimplification.test.ts", "config.js"],
+  "include": ["src", "config.js"],
   "exclude": ["node_modules", "dist"]
 }

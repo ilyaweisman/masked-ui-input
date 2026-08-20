@@ -1,3 +1,6 @@
+/**
+ * A class representing a state in a finite automaton, with an ID and a set of numbers.
+ */
 export class State {
     private id: number = 0;
     private stateSet: Set<number> = new Set();
@@ -6,6 +9,11 @@ export class State {
         this.id = id;
         this.stateSet = stateSet;
     }
+
+    /**
+     * Getters and setters.
+     */
+
 
     getId(): number {
         return this.id;

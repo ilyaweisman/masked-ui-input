@@ -11,7 +11,7 @@ export class DFAHelper {
      * @param stateNumbers The state number
      * @returns The acceptable characters for the given states concatenated together
      */
-    public static findNextAcceptableCharacters(dfa: DFA, stateNumbers: Set<number>): string {
+    static findNextAcceptableCharacters(dfa: DFA, stateNumbers: Set<number>): string {
         let acceptableCharacters: Set<string> = new Set();
         const inputCharacters: Array<string> = dfa.getInputCharacters();
         for (const stateNumber of stateNumbers) {
@@ -27,7 +27,6 @@ export class DFAHelper {
         return Array.from(acceptableCharacters).join('');
     }
 
-
     /**
      * Handles the backspace (with no highlight) input. If a special character was removed, then keep removing characters 
      * from that position until a non-special character is removed.
@@ -35,7 +34,7 @@ export class DFAHelper {
      * @param previousString The string before the backspace
      * @returns The modified string
      */
-    public static handleBackspace(currentString: string, previousString: string): string {
+    static handleBackspace(currentString: string, previousString: string): string {
         let backspaceIndex: number = 0;
         // Find the index of first difference between the current string and the previous string.
         // This is where the backspace input occurred.
@@ -60,7 +59,7 @@ export class DFAHelper {
      * @param inputString The string to be modified
      * @returns The modified string
      */
-    public static removeLastCharacterIfSpecial(inputString: string): string {
+    static removeLastCharacterIfSpecial(inputString: string): string {
         if (inputString.length === 0) {
             return inputString;
         }

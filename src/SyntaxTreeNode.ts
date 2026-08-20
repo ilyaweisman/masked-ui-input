@@ -1,3 +1,6 @@
+/**
+ * A class representing a node in a syntax tree. These syntax trees are generated algorithmically from RegExes.
+ */
 export class SyntaxTreeNode{
     
     private value: string = '';
@@ -13,6 +16,10 @@ export class SyntaxTreeNode{
         this.value = value;
         this.type = type;
     }
+
+    /**
+     * Getters and setters.
+     */
 
     getValue(): string {
         return this.value;
@@ -151,6 +158,9 @@ export class SyntaxTreeNode{
     }
 }
 
+/**
+ * Enumeration for the types of nodes in a syntax tree.
+ */
 export enum NodeType {
     LEAF,
     OR,

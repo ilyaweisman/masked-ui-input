@@ -12,7 +12,7 @@ export class MaskHelper {
      * @param inputMask The mask provided by the user
      * @returns The mask to be used
      */
-    public static getMask(dfa: DFA, inputMask: string | undefined) {
+    static getMask(dfa: DFA, inputMask: string | undefined) {
         let mask: string = '';
         if (inputMask) {
             if (MaskHelper.isMaskValid(dfa, inputMask)) {
@@ -33,7 +33,7 @@ export class MaskHelper {
      * @param mask The mask provided
      * @returns Whether the mask is valid for the DFA
      */
-    public static isMaskValid(dfa: DFA, mask: string): boolean {
+    static isMaskValid(dfa: DFA, mask: string): boolean {
         let currentStateNumbers: Set<number> = new Set([0]);
         let acceptableCharacters: string = DFAHelper.findNextAcceptableCharacters(dfa, currentStateNumbers);
         let characterIndex: number = 0;
@@ -80,7 +80,7 @@ export class MaskHelper {
      * @param dfa The DFA
      * @returns A generic mask (typically consists of Xs, As or 9s)
      */
-    public static generateMask(dfa: DFA): string {
+    static generateMask(dfa: DFA): string {
         let mask: string = '';
 
         let currentStateNumbers: Set<number> = new Set([0]);

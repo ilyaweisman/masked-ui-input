@@ -1,5 +1,5 @@
 import { useRef, useState, type CSSProperties } from 'react'
-import { RegexToDFAConverter } from './RegexToDFA';
+import { RegexToDFAConverter } from './RegexToDFAConverter';
 import { DFA } from './DFA';
 import { MaskHelper } from './MaskHelper';
 import { DFAHelper } from './DFAHelper';

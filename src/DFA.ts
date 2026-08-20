@@ -76,7 +76,7 @@ export class DFA {
 	 * @param partialString The string of characters which is fed to the DFA.
 	 * @returns Whether or not the partial string provided is not rejected by the DFA
 	 */
-	public isPartialStringValid(partialString: string): boolean {
+	isPartialStringValid(partialString: string): boolean {
 		// Traverse through the Deterministic Finite Automaton (DFA) using the partial string and the transition table.
         let currentStateNumber: number = 0;
 		for (let i: number = 0; i < partialString.length; i++) {
@@ -103,7 +103,7 @@ export class DFA {
 	 * @param partialString The string of characters which is fed to the DFA.
 	 * @returns The modified partial string or null if it is not accepted.
 	 */
-	public getPartialStringIgnoreSpecialCharacters(partialString: string): string | null {
+	getPartialStringIgnoreSpecialCharacters(partialString: string): string | null {
         const strippedPartialString: string = partialString.replace(/\W/g, '');
 		// Traverse through the Deterministic Finite Automaton (DFA) using the partial string and the transition table.
         let currentStateNumber: number = 0;
@@ -159,7 +159,7 @@ export class DFA {
     /**
      * Generates a set of trap states for the DFA after the DFA is generated.
      */
-    public generateSetOfTrapStates(): void {
+    generateSetOfTrapStates(): void {
         for (let i: number = 0; i < this.states.length; i++) {
             if (this.determineWhetherTrapState(i)) {
                 this.trapStates.add(i);
@@ -167,14 +167,46 @@ export class DFA {
         }
     } 
 
-
     /**
 	 * Determines whether or not a particular state of the DFA defined by stateNumber is a trap state.
 	 * @param stateNumber A number which identifies a state in the DFA. 
 	 * @returns Whether or not the state provided is a trap state.
 	 */
-    public inTrapState(stateNumber: number): boolean {
+    inTrapState(stateNumber: number): boolean {
         return this.trapStates.has(stateNumber);
+    }
+
+
+    /** 
+     * Loop through all the transitions in the transition table.
+     * Examine all the transitions from one state to another (non-trap) state involving a special character.
+     * If there are two or more such transitions from the same state, then there is a choice in special character, which is not permissible.
+     * Return the state number where this occurs.
+     * Otherwise, return -1 to indicate that there is no choice in special characters.
+    */
+    choiceInSpecialCharacters(): number {
+        let stateNumber: number = 0;
+        const inputCharacters: Array<string> = this.getInputCharacters();
+        let inputCharacter: string = inputCharacters[0];
+
+        while (this.transitions.has(`${stateNumber}${inputCharacter}`)) {
+            let specialCharacterCount = 0;
+            for (const char of inputCharacters) {
+                if (/^\W$/.test(char)) {
+                    let nextStateNumber: number = this.transitions.get(`${stateNumber}${char}`)!.getId();
+                    if (!this.inTrapState(nextStateNumber)) {
+                        specialCharacterCount++;
+                        if (specialCharacterCount === 2) {
+                            return stateNumber;
+                        }
+                    }
+                }
+            }
+            stateNumber++;
+            inputCharacter = inputCharacters[0];
+        }
+        // No choice in special characters was found.
+        return -1; 
     }
 }
 
