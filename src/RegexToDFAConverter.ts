@@ -335,11 +335,10 @@ export class RegexToDFAConverter {
         
         // Build the DFA.
         this.populateStatesAndTransitions(syntaxTree);
-        this.DFA.generateSetOfTrapStates();
+        this.DFA.findTrapState();
 
-        const index: number = this.DFA.choiceInSpecialCharacters();
-        if (index !== -1) {
-            throw new Error(`The RegEx contains a choice in which special character to input at position ${index}, which is not permitted. The user should be inputting alphanumeric characters only.`);
+        if (this.DFA.choiceInSpecialCharacters()) {
+            throw new Error(`The RegEx contains a choice in which special character to input at a given position, which is not permitted. The user should be inputting alphanumeric characters only.`);
         }
 
         return this.DFA;

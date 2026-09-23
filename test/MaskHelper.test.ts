@@ -1,7 +1,7 @@
 import { test, describe, expect } from '@jest/globals';
-import { RegexToDFAConverter } from '../RegexToDFAConverter';
-import { DFA } from '../DFA';
-import { MaskHelper } from '../MaskHelper';
+import { RegexToDFAConverter } from '../src/RegexToDFAConverter';
+import { DFA } from '../src/DFA';
+import { MaskHelper } from '../src/MaskHelper';
 
 describe('Test mask validity chacker', () => {
     const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();

@@ -1,5 +1,5 @@
 import { expect, test, describe } from '@jest/globals';
-import { RegexSimplifier } from '../RegexSimplifier';
+import { RegexSimplifier } from '../src/RegexSimplifier';
 
 describe('Basic RegEx Validation', () => {
   test('Valid RegEx passes validation', () => {
@@ -98,7 +98,7 @@ describe('Replace literal bracket characters', () => {
     expect(RegexSimplifier.replaceLiteralBracketCharacters('a{2}')).toBe('a{2}');
   });
   test('Unless the RegEx count is a range', () => {
-    expect(() => RegexSimplifier.replaceLiteralBracketCharacters('a{2,4}')).toThrow('RegEx must be of fixed length and so may not contain ranges such as {x, y}.');
+    expect(() => RegexSimplifier.replaceLiteralBracketCharacters('a{2,4}')).toThrow('RegEx must be of fixed length and so may not contain ranges such as {x,y}.');
   });
   test('Curly brackets which do not represent valid RegEx counts are replaced', () => {
     expect(RegexSimplifier.replaceLiteralBracketCharacters('a{-}')).toBe('a\\e-\\f');

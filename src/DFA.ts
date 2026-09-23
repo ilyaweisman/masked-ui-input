@@ -10,13 +10,13 @@ export class DFA {
     private states: Array<State>;
     private transitions: Map<string, State>;
     private inputCharacters: Array<string>;
-    private trapStates: Set<number>;
+    private trapState: number;
 
     constructor() {
         this.states = [];
         this.transitions = new Map();
         this.inputCharacters = [];
-        this.trapStates = new Set();
+        this.trapState = -1;
     }
 
     getStates(): Array<State> {
@@ -33,6 +33,11 @@ export class DFA {
 
     setTransitions(transitions: Map<string, State>): void {
         this.transitions = transitions;
+    }
+
+
+    getTrapState(): number {
+        return this.trapState;
     }
 
     /**
@@ -69,32 +74,6 @@ export class DFA {
         });
         console.log(table);
     }
-
-
-    /**
-	 * Determines whether or not partialString provided is either rejected by the DFA or causes the DFA to fall into a trap state.
-	 * @param partialString The string of characters which is fed to the DFA.
-	 * @returns Whether or not the partial string provided is not rejected by the DFA
-	 */
-	isPartialStringValid(partialString: string): boolean {
-		// Traverse through the Deterministic Finite Automaton (DFA) using the partial string and the transition table.
-        let currentStateNumber: number = 0;
-		for (let i: number = 0; i < partialString.length; i++) {
-			const transKey = `${currentStateNumber}${partialString.charAt(i)}`;
-			// If there is no transition in the transition table which matches 
-			// the next character in the partial string, then the string is not valid.
-			if (!this.transitions.get(transKey)) {
-				return false;
-			}
-			currentStateNumber = this.transitions.get(transKey)!.getId();
-		}
-		// If the automaton ends up in a trap state, we know that the partial string cannot be valid.
-        // NOTE: Since this is a fixed length DFA, the final state can never be a trap state.
-		if (this.inTrapState(currentStateNumber)) {
-			return false;
-		}
-		return true;
-	}
 
     /**
 	 * First strips the partial string of any special characters.
@@ -157,12 +136,13 @@ export class DFA {
 	}
 
     /**
-     * Generates a set of trap states for the DFA after the DFA is generated.
+     * Finds the trap state for the DFA after the DFA is generated.
      */
-    generateSetOfTrapStates(): void {
+    findTrapState(): void {
         for (let i: number = 0; i < this.states.length; i++) {
             if (this.determineWhetherTrapState(i)) {
-                this.trapStates.add(i);
+                this.trapState = i;
+                break;
             }
         }
     } 
@@ -173,32 +153,36 @@ export class DFA {
 	 * @returns Whether or not the state provided is a trap state.
 	 */
     inTrapState(stateNumber: number): boolean {
-        return this.trapStates.has(stateNumber);
+        return this.trapState === stateNumber;
     }
 
 
     /** 
      * Loop through all the transitions in the transition table.
-     * Examine all the transitions from one state to another (non-trap) state involving a special character.
-     * If there are two or more such transitions from the same state, then there is a choice in special character, which is not permissible.
+     * Examine all the transitions from one state to another (non-trap) state involving special character and word characters.
+     * If there a special character transition from a state and at least one other transition, then there is a choice involving 
+     * a special character, which is not permissible.
      * Return the state number where this occurs.
      * Otherwise, return -1 to indicate that there is no choice in special characters.
     */
-    choiceInSpecialCharacters(): number {
+    choiceInSpecialCharacters(): boolean {
         let stateNumber: number = 0;
         const inputCharacters: Array<string> = this.getInputCharacters();
         let inputCharacter: string = inputCharacters[0];
 
         while (this.transitions.has(`${stateNumber}${inputCharacter}`)) {
+            let wordCharacterCount = 0;
             let specialCharacterCount = 0;
             for (const char of inputCharacters) {
-                if (/^\W$/.test(char)) {
-                    let nextStateNumber: number = this.transitions.get(`${stateNumber}${char}`)!.getId();
-                    if (!this.inTrapState(nextStateNumber)) {
+                let nextStateNumber: number = this.transitions.get(`${stateNumber}${char}`)!.getId();
+                if (!this.inTrapState(nextStateNumber)) {
+                    if (/^\W$/.test(char)) {
                         specialCharacterCount++;
-                        if (specialCharacterCount === 2) {
-                            return stateNumber;
-                        }
+                    } else {
+                        wordCharacterCount++;
+                    }
+                    if (specialCharacterCount === 2 || (specialCharacterCount === 1 && wordCharacterCount > 0)) {
+                        return true;
                     }
                 }
             }
@@ -206,7 +190,7 @@ export class DFA {
             inputCharacter = inputCharacters[0];
         }
         // No choice in special characters was found.
-        return -1; 
+        return false; 
     }
 }
 

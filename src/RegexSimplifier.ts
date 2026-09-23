@@ -193,7 +193,7 @@ export class RegexSimplifier {
                     if (leftBraceIndex !== -1) {
                         const contentsBetweenBraces: string = rgx.substring(leftBraceIndex + 1, i);
                         if (/^\d+,\d*$/.test(contentsBetweenBraces)) { // e.g. {1,2}
-                            throw new Error('RegEx must be of fixed length and so may not contain ranges such as {x, y}.');
+                            throw new Error('RegEx must be of fixed length and so may not contain ranges such as {x,y}.');
                         } else if (!/^\d+$/.test(contentsBetweenBraces)) { // i.e. not {N}
                             rgx = `${rgx.substring(0, leftBraceIndex)}\\e${rgx.substring(leftBraceIndex + 1, i)}\\f${rgx.substring(i + 1)}`;
                             i += 2;
