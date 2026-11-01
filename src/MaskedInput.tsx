@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { RegexToDFAConverter } from './RegexToDFAConverter';
 import { DFA } from './DFA';
 import { MaskHelper } from './MaskHelper';
@@ -18,29 +18,30 @@ type MaskedInputProps = {
  */
 function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
   const [value, setValue] = useState<string>('');
+  const [transparentTextValue, setTransparentTextValue] = useState('');
+  const [greyTextValue, setGreyTextValue] = useState('');
+  const [transparentTextDisplay, setTransparentTextDisplay] = useState('none');
 
-  const backgroundBox = useRef<HTMLDivElement | null>(null);
-  const whiteText = useRef<HTMLSpanElement | null>(null);
-  const greyText = useRef<HTMLSpanElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  let greyColor: string = 'grey';
-  if (inputRef.current) {
-    const styles: CSSStyleDeclaration = window.getComputedStyle(inputRef.current, '::placeholder');
-    greyColor = styles.getPropertyValue('color');
-  }
+  const backgroundBox: React.RefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(null);
+  const transparentText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
+  const greyText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
+  const inputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
 
   let backspaceNoHighlight: boolean = false;
 
-  const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
   let dfa: DFA | null = null;
-  let mask: string | null = null;
+  let mask: string | undefined = undefined;
+
+  let greyColor: React.RefObject<string> = useRef('grey');
 
   // Define functions.
   const setNewValue: (newValue: string) => void = (newValue: string) => {
     setValue(newValue);
-    whiteText.current!.textContent = newValue;
-    greyText.current!.textContent = mask?.substring(newValue.length) || '';
+    setTransparentTextValue(newValue);
+    setTransparentTextDisplay(newValue === '' ? 'none' : 'inherit');
+    const greyTextSubstring: string = mask?.substring(newValue.length) || '';
+    setGreyTextValue(greyTextSubstring);
   }
 
 
@@ -91,6 +92,17 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
   }
 
 
+  useEffect(() => {
+    if (inputRef.current) {
+      const placeholderStyles: CSSStyleDeclaration = window.getComputedStyle(inputRef.current, '::placeholder');
+      greyColor.current = placeholderStyles.getPropertyValue('color');
+    }
+
+    setGreyTextValue(mask || '');
+  }, []);
+
+
+  const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
   try {
     dfa = regexToDFA.convertRegexToDFA(regex);
     mask = MaskHelper.getMask(dfa, inputMask);
@@ -99,6 +111,33 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
   }
 
 
+  const transparentTextStyle: CSSProperties = 
+  {
+    ...style, 
+    color: 'transparent', 
+    borderColor: 'transparent', 
+    display: transparentTextDisplay, 
+    borderLeft: 'none', 
+    borderRight: 'none',
+    fieldSizing: 'content',
+    marginRight: 0,
+    backgroundColor: 'transparent',
+    width: 'auto',
+    padding: 'auto',
+    margin: 0
+  };
+
+  const greyTextStyle: CSSProperties = 
+  {
+    ...style, 
+    color: greyColor.current, 
+    borderColor: 'transparent', 
+    borderLeft: 'none', 
+    borderRight: 'none',
+    backgroundColor: 'transparent',
+    padding: 'auto'
+  };
+
   return (
     <div className="wrapper">
       <input
@@ -106,7 +145,7 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
         className="myInput"
         name="myInput"
         type="text"
-        style={style}
+        style={{...style, backgroundColor: 'transparent'}}
         value={dfa ? value : undefined}
         onChange={dfa ? handleChange : undefined}
         onKeyDown={dfa ? handleKeyDown : undefined}
@@ -114,9 +153,9 @@ function MaskedInput({ regex, mask: inputMask, style }: MaskedInputProps) {
         onBlur={dfa ? handleBlur : undefined}
         placeholder=""
       />
-      <div className="backgroundBox" ref={backgroundBox} style={{...style, display: dfa ? 'inline-block' : 'none'}}>
-        <span ref={whiteText} style={{ color: 'transparent' }}></span>
-        <span ref={greyText} style={{ color: greyColor }}>{mask}</span>
+      <div className="backgroundBox" ref={backgroundBox} style={{...style, display: !dfa ? 'none' : 'inline-flex', margin: 0, width: '100%'}}>
+        <input className="backgroundText" ref={transparentText} readOnly={true} style={transparentTextStyle} value={transparentTextValue}></input>
+        <input className="backgroundText" ref={greyText} readOnly={true} style={greyTextStyle} value={greyTextValue}></input>
       </div>
     </div>
   )
