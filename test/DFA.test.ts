@@ -6,8 +6,7 @@ import { RegexSimplifier } from '../src/RegexSimplifier';
 
 describe('Partial string validation', () => {
     // Realistic example of a date input.
-    const regexToDFA: RegexToDFAConverter = new RegexToDFAConverter();
-    const dfa: DFA = regexToDFA.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
+    const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
     test('Blank input', () => {
         expect(dfa.getPartialStringIgnoreSpecialCharacters('')).toBe('');
     });
@@ -43,8 +42,7 @@ describe('Partial string validation', () => {
     });
 
     // Realistic example of an international mobile phone number input.
-    const regexToDFAForMobile: RegexToDFAConverter = new RegexToDFAConverter();
-    const mobileDfa: DFA = regexToDFAForMobile.convertRegexToDFA('[(][+]\\d{2}[)] \\d \\d{2} \\d{3} \\d{3}');
+    const mobileDfa: DFA = RegexToDFAConverter.convertRegexToDFA('[(][+]\\d{2}[)] \\d \\d{2} \\d{3} \\d{3}');
     test('Insert special characters', () => {
         expect(mobileDfa.getPartialStringIgnoreSpecialCharacters('61412345678')).toBe('(+61) 4 12 345 678');
     });
@@ -57,80 +55,79 @@ describe('Partial string validation', () => {
 });
 
 describe('Find trap states', () => {
-    let regexToDFA: RegexToDFAConverter;
-    beforeEach(() => {
-        regexToDFA = new RegexToDFAConverter();
-    });
     test('Empty DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('');
         expect(dfa.getTrapState()).toBe(0);
     });
     test('Single character DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('a');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('a');
         expect(dfa.getTrapState()).toBe(2);
     });
     test('Simple DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('Su|Do|Ku');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('Su|Do|Ku');
         dfa.findTrapState();
         expect(dfa.getTrapState()).toBe(2);
     });
     test('Complex DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
         dfa.findTrapState();
         expect(dfa.getTrapState()).toBe(4);
     });
 });
 
 describe('Choice in special characters', () => {
-    let regexToDFA: RegexToDFAConverter;
-    beforeEach(() => {
-        regexToDFA = new RegexToDFAConverter();
-    });
     test('Empty DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('');
         expect(dfa.choiceInSpecialCharacters()).toBe(false);
     });
     test('Single character DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('a');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('a');
         expect(dfa.choiceInSpecialCharacters()).toBe(false);
     });
     test('Simple DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('Su|Do|Ku');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('Su|Do|Ku');
         expect(dfa.choiceInSpecialCharacters()).toBe(false);
     });
     test('Complex DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
         expect(dfa.choiceInSpecialCharacters()).toBe(false);
     });
     test('DFA with choice in special characters', () => {
         const regex: string = RegexSimplifier.simplifyRegex('He said ("|\')Hi!("|\')');
-        const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree(`(${regex})#`);
+        const syntaxTree: SyntaxTreeNode = RegexToDFAConverter.regexToSyntaxTree(`(${regex})#`);
         syntaxTree.getRight()?.setFinalLeafNode(true);
-        regexToDFA.setNodeProperties(syntaxTree);
+
+        const regexCharacters: Map<string, Set<number>> = new Map<string, Set<number>>();
+        RegexToDFAConverter.setNodeProperties(syntaxTree, [1], regexCharacters);
         syntaxTree.printSyntaxTree(true);
 
-        regexToDFA.calculateFollowpos(syntaxTree);
+        const followpos: Map<number, Set<number>> = new Map<number, Set<number>>();
+        RegexToDFAConverter.calculateFollowpos(syntaxTree, followpos);
         
         // Build the DFA.
-        regexToDFA.populateStatesAndTransitions(syntaxTree);
-        regexToDFA.getDFA().findTrapState();
-        regexToDFA.getDFA().printTransitionTable();
-        expect(regexToDFA.getDFA().choiceInSpecialCharacters()).toBe(true);
+        const dfa: DFA = new DFA();
+        RegexToDFAConverter.populateStatesAndTransitions(syntaxTree, regexCharacters, followpos, dfa);
+        dfa.findTrapState();
+        dfa.printTransitionTable();
+        expect(dfa.choiceInSpecialCharacters()).toBe(true);
     });
     // TODO: Fix this!
     test('DFA with choice involving a special character', () => {
         const regex: string = RegexSimplifier.simplifyRegex('&&&|AND');
-        const syntaxTree: SyntaxTreeNode = regexToDFA.regexToSyntaxTree(`(${regex})#`);
+        const syntaxTree: SyntaxTreeNode = RegexToDFAConverter.regexToSyntaxTree(`(${regex})#`);
         syntaxTree.getRight()?.setFinalLeafNode(true);
-        regexToDFA.setNodeProperties(syntaxTree);
+        const regexCharacters: Map<string, Set<number>> = new Map<string, Set<number>>();
+        RegexToDFAConverter.setNodeProperties(syntaxTree, [1], regexCharacters);
         syntaxTree.printSyntaxTree(true);
 
-        regexToDFA.calculateFollowpos(syntaxTree);
+        const followpos: Map<number, Set<number>> = new Map<number, Set<number>>();
+        RegexToDFAConverter.calculateFollowpos(syntaxTree, followpos);
         
         // Build the DFA.
-        regexToDFA.populateStatesAndTransitions(syntaxTree);
-        regexToDFA.getDFA().findTrapState();
-        regexToDFA.getDFA().printTransitionTable();
-        expect(regexToDFA.getDFA().choiceInSpecialCharacters()).toBe(true);
+        const dfa: DFA = new DFA();
+        RegexToDFAConverter.populateStatesAndTransitions(syntaxTree, regexCharacters, followpos, dfa);
+        dfa.findTrapState();
+        dfa.printTransitionTable();
+        expect(dfa.choiceInSpecialCharacters()).toBe(true);
     });
 });

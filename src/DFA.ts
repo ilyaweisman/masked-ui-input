@@ -1,37 +1,35 @@
 import { DFAHelper } from "./DFAHelper";
-import { MaskHelper } from "./MaskHelper";
-import { State } from "./State";
 
 /**
  * Discrete Finite Automaton (DFA) object.
  * Contains methods for converting a RegEx into a DFA.
  */
 export class DFA {
-    private states: Array<State>;
-    private transitions: Map<string, State>;
+    private numberOfStates: number;
+    private transitions: Map<string, number>;
     private inputCharacters: Array<string>;
     private trapState: number;
 
     constructor() {
-        this.states = [];
+        this.numberOfStates = 0;
         this.transitions = new Map();
         this.inputCharacters = [];
         this.trapState = -1;
     }
 
-    getStates(): Array<State> {
-        return this.states;
+    getNumberOfStates(): number {
+        return this.numberOfStates;
     }
 
-    setStates(states: Array<State>): void {
-        this.states = states;
+    setNumberOfStates(numberOfStates: number): void {
+        this.numberOfStates = numberOfStates;
     }
 
-    getTransitions(): Map<string, State> {
+    getTransitions(): Map<string, number> {
         return this.transitions;
     }
 
-    setTransitions(transitions: Map<string, State>): void {
+    setTransitions(transitions: Map<string, number>): void {
         this.transitions = transitions;
     }
 
@@ -60,13 +58,13 @@ export class DFA {
         const horizontalLine: string = '-'.repeat(7 + 4 * numberOfColumns);
         let table: string = `       | Input \n${horizontalLine}\n State | ${inputCharacters.join(' | ')}\n${horizontalLine}\n`;
         let columnCount: number = 0;
-        this.transitions.forEach((state, transitionKey) => {
+        this.transitions.forEach((stateNumber, transitionKey) => {
             if (columnCount % numberOfColumns === 0) {
                 const stateNumber: string = transitionKey.substring(0, transitionKey.length - 1);
                 const spaces: string = ' '.repeat(Math.max(0, 6 - stateNumber.length));
                 table += `${spaces}${stateNumber} `;
             }
-            table += `| ${state.getId()}${(state.getId() < 10 ? ' ' : '')}`;
+            table += `| ${stateNumber}${(stateNumber < 10 ? ' ' : '')}`;
             columnCount++;
             if (columnCount % numberOfColumns === 0) {
                 table += `\n${horizontalLine}\n`;
@@ -92,7 +90,7 @@ export class DFA {
 		while (index < strippedPartialString.length || /^\W$/.test(nextAcceptableCharacters)) {
             if (/^\W$/.test(nextAcceptableCharacters)) {
                 const transKey = `${currentStateNumber}${nextAcceptableCharacters}`;
-                currentStateNumber = this.transitions.get(transKey)!.getId();
+                currentStateNumber = this.transitions.get(transKey)!;
                 resultString += nextAcceptableCharacters;
             }
             else {
@@ -102,7 +100,7 @@ export class DFA {
                 if (!this.transitions.get(transKey)) {
                     return null;
                 }
-                currentStateNumber = this.transitions.get(transKey)!.getId();
+                currentStateNumber = this.transitions.get(transKey)!;
                 resultString += strippedPartialString.charAt(index);
                 index++;
             }
@@ -128,7 +126,7 @@ export class DFA {
 			const transKey: string = `${stateNumber}${char}`;
 			// If any transition leads to a state which is not the current state, the state defined by stateNumber cannot be a trap state. 
 			// Note that given that we produced a minimised DFA, there can not be any trap loops in the DFA.
-			if (this.transitions.get(transKey)?.getId() !== stateNumber) {
+			if (this.transitions.get(transKey) !== stateNumber) {
 				return false;
 			}
 		}
@@ -139,7 +137,7 @@ export class DFA {
      * Finds the trap state for the DFA after the DFA is generated.
      */
     findTrapState(): void {
-        for (let i: number = 0; i < this.states.length; i++) {
+        for (let i: number = 0; i < this.numberOfStates; i++) {
             if (this.determineWhetherTrapState(i)) {
                 this.trapState = i;
                 break;
@@ -174,7 +172,7 @@ export class DFA {
             let wordCharacterCount = 0;
             let specialCharacterCount = 0;
             for (const char of inputCharacters) {
-                let nextStateNumber: number = this.transitions.get(`${stateNumber}${char}`)!.getId();
+                let nextStateNumber: number = this.transitions.get(`${stateNumber}${char}`)!;
                 if (!this.inTrapState(nextStateNumber)) {
                     if (/^\W$/.test(char)) {
                         specialCharacterCount++;

@@ -58,7 +58,7 @@ export class MaskHelper {
             const nextStateNumbers: Set<number> = new Set();
             for (const stateNumber of currentStateNumbers) {
                 for (const char of acceptableCharacters) {
-                    const nextStateNumber: number = dfa.getTransitions().get(`${stateNumber}${char}`)!.getId();
+                    const nextStateNumber: number = dfa.getTransitions().get(`${stateNumber}${char}`)!;
                     nextStateNumbers.add(nextStateNumber);
                 }
             }
@@ -106,7 +106,7 @@ export class MaskHelper {
             const nextStateNumbers: Set<number> = new Set();
             for (const stateNumber of currentStateNumbers) {
                 for (const char of acceptableCharacters) {
-                    const nextStateNumber: number = dfa.getTransitions().get(`${stateNumber}${char}`)!.getId();
+                    const nextStateNumber: number = dfa.getTransitions().get(`${stateNumber}${char}`)!;
                     nextStateNumbers.add(nextStateNumber);
                 }
             }

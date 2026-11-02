@@ -118,8 +118,8 @@ export class RegexSimplifier {
     }
 
     /**
-     * Replaces all the regex counts and character classes in the RegEx with their expanded forms.
-     * @returns the regex (still contains temporary escaped characters)
+     * Replaces all the RegEx counts and character classes in the RegEx with their expanded forms.
+     * @returns the RegEx (still contains temporary escaped characters)
      */
     static removeRegexCountsAndCharacterClasses(regex: string): string {
         let rgx: string = this.replaceLiteralBracketCharacters(regex);

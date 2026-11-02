@@ -4,24 +4,20 @@ import { DFA } from "../src/DFA";
 import { DFAHelper } from "../src/DFAHelper";
 
 describe('Find the next acceptable characters for a DFA', () => {
-    let regexToDFA: RegexToDFAConverter;
-    beforeEach(() => {
-        regexToDFA = new RegexToDFAConverter();
-    });
     test('Empty DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('');
-        expect(dfa.getStates().length).toEqual(1);
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('');
+        expect(dfa.getNumberOfStates()).toEqual(1);
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([0]))).toEqual('');
     });
     test('Single character DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('a');
-        expect(dfa.getStates().length).toEqual(3);
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('a');
+        expect(dfa.getNumberOfStates()).toEqual(3);
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([0]))).toEqual('a');
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([1, 2]))).toEqual('');
     });
     test('Simple DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('Su|Do|Ku');
-        expect(dfa.getStates().length).toEqual(6);
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('Su|Do|Ku');
+        expect(dfa.getNumberOfStates()).toEqual(6);
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([0]))).toEqual('SDK');
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([1]))).toEqual('u');
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([2]))).toEqual('');
@@ -30,8 +26,8 @@ describe('Find the next acceptable characters for a DFA', () => {
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([5]))).toEqual('');
     });
     test('Complex DFA', () => {
-        const dfa: DFA = regexToDFA.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
-        expect(dfa.getStates().length).toEqual(15);
+        const dfa: DFA = RegexToDFAConverter.convertRegexToDFA('^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/\\d{4}$');
+        expect(dfa.getNumberOfStates()).toEqual(15);
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([0]))).toEqual('0123');
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([1]))).toEqual('123456789');
         expect(DFAHelper.findNextAcceptableCharacters(dfa, new Set([2]))).toEqual('0123456789');

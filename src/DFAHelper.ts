@@ -17,7 +17,7 @@ export class DFAHelper {
         for (const stateNumber of stateNumbers) {
             for (const char of inputCharacters) {
                 const transitionKey: string = stateNumber.toString() + char;
-                const nextState: number = dfa.getTransitions().get(transitionKey)!.getId();
+                const nextState: number = dfa.getTransitions().get(transitionKey)!;
                 if (!dfa.inTrapState(nextState)) {
                     acceptableCharacters.add(char);
                 }
