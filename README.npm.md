@@ -3,7 +3,7 @@ For additional animations and diagrams, view the README on the [GitHub repositor
 
 This is an input component which requires any user input to comply with a specified pattern. \
 The developer utilising this component specifies a regular expression (RegEx), and the component prevents the user from inputting any partial string which does not fit the RegEx pattern. \
-Furthermore, the component generates grey placeholder text (alternatively, the placeholder be specified by the developer) which acts as a guide the user can reference as they type. \
+Furthermore, the component generates grey placeholder text (alternatively, the placeholder can be specified by the developer) which acts as a guide the user can reference as they type. \
 Any special characters in the pattern get auto-filled.
 
 ## How to import it
@@ -33,6 +33,7 @@ return <MaskedInput setParentValue={setInputValue} regex={'^[A-Z]{3}$'} mask={'A
 
 ## Rules for the RegEx
 The RegEx provided must abide by the following rules (otherwise a console error is thrown):
+- The RegEx must be **valid in JavaScript**.
 - The RegEx must only accept strings of a **fixed-length**. 
 ### &emsp;&emsp;abc ✓
 ### &emsp;&emsp;\\\\d{3}|[A-Z]{3} ✓
