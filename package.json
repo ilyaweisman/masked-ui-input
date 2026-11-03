@@ -1,7 +1,6 @@
 {
   "name": "masked-ui-input",
   "version": "0.1.0",
-  "private": true,
   "description": "A masked UI input component.",
   "type": "module",
   "main": "./dist/index.js",
