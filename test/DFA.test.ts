@@ -111,7 +111,6 @@ describe('Choice in special characters', () => {
         dfa.printTransitionTable();
         expect(dfa.choiceInSpecialCharacters()).toBe(true);
     });
-    // TODO: Fix this!
     test('DFA with choice involving a special character', () => {
         const regex: string = RegexSimplifier.simplifyRegex('&&&|AND');
         const syntaxTree: SyntaxTreeNode = RegexToDFAConverter.regexToSyntaxTree(`(${regex})#`);

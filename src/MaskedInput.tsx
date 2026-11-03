@@ -1,9 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { RegexToDFAConverter } from './RegexToDFAConverter';
-import { DFA } from './DFA';
-import { MaskHelper } from './MaskHelper';
-import { DFAHelper } from './DFAHelper';
-import { MaskedInputHelper } from './MaskedInputHelper';
+import { useRef, useState, type CSSProperties } from 'react'
 import { MaskedInputFacade, MaskedInputFacadeImpl } from './MaskedInputFacade';
 
 /**
@@ -27,13 +22,6 @@ type MaskedInputProps = {
  * @returns The input component.
  */
 function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedInputProps) {
-  const [value, setValue] = useState<string>('');
-  const [transparentTextValue, setTransparentTextValue] = useState('');
-  const [greyTextValue, setGreyTextValue] = useState('');
-  const [transparentTextWidth, setTransparentTextWidth] = useState('0');
-  const [greyColor, setGreyColor] = useState('grey');
-
-
   const backgroundBox: React.RefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(null);
   const transparentText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
   const greyText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
@@ -41,6 +29,11 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
 
   const maskedInputFacade: MaskedInputFacade = new MaskedInputFacadeImpl(regex, inputMask);
   const enabled: boolean = maskedInputFacade.isEnabled();
+
+  const [value, setValue] = useState<string>('');
+  const [transparentTextValue, setTransparentTextValue] = useState('');
+  const [greyTextValue, setGreyTextValue] = useState(maskedInputFacade.getGreyTextValue(0));
+  const [transparentTextWidth, setTransparentTextWidth] = useState('0');
 
   // Define functions.
   const setNewValue: (newValue: string) => void = (newValue: string) => {
@@ -67,15 +60,7 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
     setNewValue(maskedInputFacade.adjustValue(e.target.value, value, true, false));
   }
 
-  const [backgroundBoxStyle, transparentTextStyle, greyTextStyle] = maskedInputFacade.getStyles(style, transparentTextWidth, greyColor);
-
-  useEffect(() => {
-    if (inputRef.current) {
-      const placeholderStyles: CSSStyleDeclaration = window.getComputedStyle(inputRef.current, '::placeholder');
-      setGreyColor(placeholderStyles.getPropertyValue('color'));
-    }
-    setGreyTextValue(maskedInputFacade.getGreyTextValue(0));
-  }, []);
+  const [backgroundBoxStyle, transparentTextStyle, greyTextStyle] = maskedInputFacade.getStyles(style, transparentTextWidth);
 
   return (
     <div className="wrapper">
@@ -90,11 +75,10 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
         onKeyDown={enabled ? handleKeyDown : undefined}
         onFocus={enabled ? handleFocus : undefined}
         onBlur={enabled ? handleBlur : undefined}
-        placeholder=""
       />
       <div className="backgroundBox" ref={backgroundBox} style={backgroundBoxStyle}>
-        <input className="backgroundText" ref={transparentText} disabled={true} style={transparentTextStyle} value={transparentTextValue}></input>
-        <input className="backgroundText" ref={greyText} disabled={true} style={greyTextStyle} value={greyTextValue}></input>
+        <input id="transparentText" className="backgroundText" ref={transparentText} disabled={true} style={transparentTextStyle} value={transparentTextValue}/>
+        <input id="greyText" className="backgroundText" ref={greyText} disabled={true} style={greyTextStyle} value={greyTextValue}/>
       </div>
     </div>
   )

@@ -7,7 +7,7 @@ import { RegexToDFAConverter } from "./RegexToDFAConverter";
 export interface MaskedInputFacade {
     adjustValue(value: string, initialValue: string, isChange: boolean, isBlur: boolean): string;
     registerKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void;
-    getStyles(style: React.CSSProperties | undefined, transparentTextWidth: string, greyColor: string): React.CSSProperties[];
+    getStyles(style: React.CSSProperties | undefined, transparentTextWidth: string): React.CSSProperties[];
     getGreyTextValue(valueLength: number): string;
     isEnabled(): boolean;
 }
@@ -59,13 +59,12 @@ export class MaskedInputFacadeImpl implements MaskedInputFacade {
      * Returns the styles for the background box, transparent text input, and grey text input.
      * @param style The parent input style provided by the user
      * @param transparentTextWidth The width of the transparent text
-     * @param greyColor The color of the grey text
      * @returns The styles as an array
      */
-    getStyles(style: React.CSSProperties | undefined, transparentTextWidth: string, greyColor: string): React.CSSProperties[] {
+    getStyles(style: React.CSSProperties | undefined, transparentTextWidth: string): React.CSSProperties[] {
         const backgroundBoxStyle: React.CSSProperties = MaskedInputHelper.backgroundBoxStyle(style, !!this.dfa);
         const transparentTextStyle: React.CSSProperties = MaskedInputHelper.transparentTextStyle(style, transparentTextWidth);
-        const greyTextStyle: React.CSSProperties = MaskedInputHelper.greyTextStyle(style, greyColor);
+        const greyTextStyle: React.CSSProperties = MaskedInputHelper.greyTextStyle(style);
         return [backgroundBoxStyle, transparentTextStyle, greyTextStyle];
     }
 

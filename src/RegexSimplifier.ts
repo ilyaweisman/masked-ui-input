@@ -128,8 +128,8 @@ export class RegexSimplifier {
     static removeRegexCountsAndCharacterClasses(regex: string): string {
         let rgx: string = this.replaceLiteralBracketCharacters(regex);
         rgx = this.removeRegexCounts(rgx);
-        rgx = this.removeCharacterClasses(rgx); // TODO: Use this value of RegEx to convert to a syntax tree.
-        // Replace the temporary characters with the curly braces again.
+        rgx = this.removeCharacterClasses(rgx); 
+        // Replace the temporary characters with the brackets again.
         rgx = this.substituteBracketsForEscapedCharacters(rgx);
         return rgx;
     }
@@ -233,9 +233,6 @@ export class RegexSimplifier {
 
         // First we find all curly braces inside of character classes. 
         // We want to keep these around for later, so we replace them with temporary characters. { => \\d and } => \\s.
-        let insideBrackets: boolean = false;
-        let i: number = 0;
-
         let braceIndex: number = rgx.indexOf('{');
         // Loop through the RegEx until it no longer has any curly braces.
         while (braceIndex !== -1) {

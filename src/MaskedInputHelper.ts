@@ -61,13 +61,12 @@ export class MaskedInputHelper {
      * Generates the style for the grey text input.
      * Note that this styling cannot be defined in the css, as it would get overridden by the parent input style provided by the user.
      * @param style The parent input style provided by the user
-     * @param greyColor The color of the grey text
      * @returns The style for the grey text input
     */
-    static greyTextStyle(style: React.CSSProperties | undefined, greyColor: string): React.CSSProperties {
+    static greyTextStyle(style: React.CSSProperties | undefined): React.CSSProperties {
         return {
             ...style, 
-            color: greyColor, 
+            color: 'rgb(117, 117, 117)', 
             borderColor: 'transparent', 
             borderLeft: 'none', 
             borderRight: 'none',
