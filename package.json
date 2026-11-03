@@ -2,9 +2,16 @@
   "name": "masked-ui-input",
   "version": "0.1.0",
   "private": true,
-  "description": "A minimal TypeScript project template for masked-ui-input.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "description": "A masked UI input component.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -27,5 +34,9 @@
   "dependencies": {
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
-  }
+  },
+  "readme": "README.npm.md",
+  "files": [
+    "dist"
+  ]
 }

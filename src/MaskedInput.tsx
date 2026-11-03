@@ -1,5 +1,6 @@
 import { useRef, useState, type CSSProperties } from 'react'
 import { MaskedInputFacade, MaskedInputFacadeImpl } from './MaskedInputFacade';
+import './MaskedInput.css';
 
 /**
  * The masked input component accepts four parameters:
@@ -21,7 +22,7 @@ type MaskedInputProps = {
  * @param param0 The properties of the MaskedInput component, including the RegEx pattern, optional mask, and optional style.
  * @returns The input component.
  */
-function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedInputProps) {
+export function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedInputProps) {
   const backgroundBox: React.RefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(null);
   const transparentText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
   const greyText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
@@ -83,6 +84,3 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
     </div>
   )
 };
-
-export default MaskedInput;
-

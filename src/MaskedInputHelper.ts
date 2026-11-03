@@ -28,7 +28,7 @@ export class MaskedInputHelper {
     static backgroundBoxStyle(style: React.CSSProperties | undefined, doDisplay: boolean): React.CSSProperties {
         return {
             ...style, 
-            display: doDisplay ? 'inline-flex' : 'none', 
+            display: doDisplay ? 'flex' : 'none', 
             margin: 0, 
             width: '100%'
         };
