@@ -38,8 +38,8 @@ export class RegexSimplifier {
         }
 
         if (rgx.includes('\\D') || rgx.includes('\\W') || rgx.includes('\\s') || rgx.includes('\\S')) {
-            throw new Error(`RegEx contains one of the following character classes: \\D, \\W, \\s or \\S. 
-                These character classes are not permitted, as they allow for a free choice in special characters at a given position.`);
+            throw new Error('RegEx contains one of the following character classes: \\D, \\W, \\s or \\S. ' + 
+                'These character classes are not permitted, as they allow for a free choice in special characters at a given position.');
         }
 
         let insideBrackets: boolean = false;
@@ -107,10 +107,14 @@ export class RegexSimplifier {
             if (char === '.' && !insideBrackets) {
                 throw new Error('RegEx may not contain . outside of a character class. Any non-word characters must be singly specified.');
             }
+            // Account for non-capturing groups (?:) in the RegEx.
+            if (!insideBrackets && ind + 2 < rgx.length && rgx.substring(ind, ind + 3) === '(?:') {
+                rgx = `${rgx.substring(0, ind)}(${rgx.substring(ind + 3)}`;
+            }
             // RegEx may not contain *, + or ? outside of a character class.
-            if ((char === '*' || char === '+' || char === '?' || char === '.') && !insideBrackets) {
-                throw new Error(`RegEx must be of fixed length, and so cannot contain quantifiers like *, + or ?. If you wanted to match 
-                    these characters instead of using them as quantifiers, place them in character classes: [*], [+], or [?].`);
+            else if ((char === '*' || char === '+' || char === '?' || char === '.') && !insideBrackets) {
+                throw new Error('RegEx must be of fixed length, and so cannot contain quantifiers like *, + or ?. If you wanted to match ' + 
+                    'these characters instead of using them as quantifiers, place them in character classes: [*], [+], or [?].');
             }
             ind++;
         }
@@ -337,7 +341,7 @@ export class RegexSimplifier {
 
             // Any other non-word characters in the character class are invalid.
             if (!/^\w*$/.test(characterOptions)) {
-                throw new Error('RegEx may not contain character classes that provide special characters as a choice, i.e.' + 
+                throw new Error('RegEx may not contain character classes that permit a choice involving special characters, i.e. ' + 
                     'RegEx may not contain a special character between square brackets unless it is the only character between those brackets.');
             }
 

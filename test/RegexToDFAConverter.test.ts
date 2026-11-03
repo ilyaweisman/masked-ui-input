@@ -224,7 +224,7 @@ describe('Convert RegEx to DFA', () => {
         expect(() => {RegexToDFAConverter.convertRegexToDFA('[^abc]')}).toThrow(/^RegEx may not contain negated character classes/);
     });
     test('RegEx contains two or more special characters in a character class', () => {
-        expect(() => {RegexToDFAConverter.convertRegexToDFA('[a*!]')}).toThrow(/^RegEx may not contain character classes that provide special characters as a choice/);
+        expect(() => {RegexToDFAConverter.convertRegexToDFA('[a*!]')}).toThrow(/^RegEx may not contain character classes that permit a choice involving special characters/);
     });
     test('RegEx contains an unbalanced OR operator', () => {
         expect(() => {RegexToDFAConverter.convertRegexToDFA('ab|xyz')}).toThrow(/^RegEx contains an unbalanced OR/);

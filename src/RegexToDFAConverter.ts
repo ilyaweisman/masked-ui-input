@@ -275,8 +275,8 @@ export class RegexToDFAConverter {
         // Building the syntax tree (intermediate step).
         const syntaxTree: SyntaxTreeNode = RegexToDFAConverter.regexToSyntaxTree(`(${simplifiedRegex})#`);
         if (!syntaxTree.verifyOrNodesAreBalanced()) {
-            throw new Error(`RegEx contains an unbalanced OR (|) operator, which means that strings 
-                accepted by the RegEx can have varying lengths. The RegEx must be of fixed length.`);
+            throw new Error('RegEx contains an unbalanced OR (|) operator, which means that strings ' + 
+                'accepted by the RegEx can have varying lengths. The RegEx must be of fixed length.');
         }
         syntaxTree.getRight()?.setFinalLeafNode(true);
         const regexCharacters: Map<string, Set<number>> = new Map<string, Set<number>>();
@@ -290,7 +290,8 @@ export class RegexToDFAConverter {
         dfa.findTrapState();
 
         if (dfa.choiceInSpecialCharacters()) {
-            throw new Error(`The RegEx contains a choice in which special character to input at a given position, which is not permitted. The user should be inputting alphanumeric characters only.`);
+            throw new Error('The RegEx contains a choice in which special character to input at a given ' + 
+                'position, which is not permitted. The user should be inputting alphanumeric characters only.');
         }
 
         return dfa;

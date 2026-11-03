@@ -66,6 +66,9 @@ describe('Replace shorthand characters in a RegEx', () => {
   test('Quantifier characters inside character classes do not throw an error', () => {
     expect(RegexSimplifier.replaceShorthandCharacters('[*][?][+]')).toBe('[*][?][+]');
   });
+  test('Non-capturing groups are handled correctly', () => {
+    expect(RegexSimplifier.replaceShorthandCharacters('(?:abc)')).toBe('(abc)');
+  });
 });
 
 
@@ -179,7 +182,7 @@ describe('Remove Character Classes', () => {
     expect(() => RegexSimplifier.removeCharacterClasses('[^abc]')).toThrow(/^RegEx may not contain negated character classes/);
   });
   test('Special character in class throws error', () => {
-    expect(() => RegexSimplifier.removeCharacterClasses('[a*b]')).toThrow(/^RegEx may not contain character classes that provide special characters as a choice/);
+    expect(() => RegexSimplifier.removeCharacterClasses('[a*b]')).toThrow(/^RegEx may not contain character classes that permit a choice involving special characters/);
   });
   test('Text with no character classes is unchanged', () => {
     expect(RegexSimplifier.removeCharacterClasses('abc')).toBe('abc');

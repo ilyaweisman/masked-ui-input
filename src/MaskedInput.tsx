@@ -93,8 +93,8 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
         placeholder=""
       />
       <div className="backgroundBox" ref={backgroundBox} style={backgroundBoxStyle}>
-        <input className="backgroundText" ref={transparentText} readOnly={true} style={transparentTextStyle} value={transparentTextValue}></input>
-        <input className="backgroundText" ref={greyText} readOnly={true} style={greyTextStyle} value={greyTextValue}></input>
+        <input className="backgroundText" ref={transparentText} disabled={true} style={transparentTextStyle} value={transparentTextValue}></input>
+        <input className="backgroundText" ref={greyText} disabled={true} style={greyTextStyle} value={greyTextValue}></input>
       </div>
     </div>
   )
