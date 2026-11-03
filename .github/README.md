@@ -31,7 +31,7 @@ $ npm install masked-ui-input
 Import MaskedInput and call it with input props.
 
 ```
-import MaskedInput from 'masked-ui-input';
+import { MaskedInput } from 'masked-ui-input';
 ```
 
 ## Input parameters (props)
