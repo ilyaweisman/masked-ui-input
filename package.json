@@ -38,5 +38,12 @@
   "readme": "README.npm.md",
   "files": [
     "dist"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ilyaweisman/masked-ui-input.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
