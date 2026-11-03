@@ -10,7 +10,7 @@ Any special characters in the pattern get auto-filled.
 Install the masked-ui-input package in your project.
 
 ```
-$ npm install masked-ui-input
+npm install @ilyaweisman/masked-ui-input --registry=https://npm.pkg.github.com/
 ````
 
 Import MaskedInput and call it with input props.
@@ -34,18 +34,18 @@ return <MaskedInput setParentValue={setInputValue} regex={'^[A-Z]{3}$'} mask={'A
 ## Rules for the RegEx
 The RegEx provided must abide by the following rules (otherwise a console error is thrown):
 - The RegEx must only accept strings of a **fixed-length**. 
-### &emsp;&emsp;abc ✅ 
-### &emsp;&emsp;\\\\d{3}|[A-Z]{3} ✅ 
-### &emsp;&emsp;a* ❌ 
-### &emsp;&emsp;[a-z]+ ❌ 
-### &emsp;&emsp;\\\\d|\\\\d{2} ❌
+### &emsp;&emsp;abc ✓
+### &emsp;&emsp;\\\\d{3}|[A-Z]{3} ✓
+### &emsp;&emsp;a* X
+### &emsp;&emsp;[a-z]+ X
+### &emsp;&emsp;\\\\d|\\\\d{2} X
 - The RegEx can only accept strings whose information is contained within **alphanumeric** characters. Special charcaters are allowed in these strings, but only as constants which can be auto-filled. \
 In other words, **there can not be any choice involving a special character** at a given position.
-### &emsp;&emsp;12|89 ✅ 
-### &emsp;&emsp;\\\\d/\\\\d ✅ 
-### &emsp;&emsp; \\\\d(/|-)\\\\d ❌
-### &emsp;&emsp; [.,] ❌
-### &emsp;&emsp; AND|&&& ❌
+### &emsp;&emsp;12|89 ✓
+### &emsp;&emsp;\\\\d/\\\\d ✓
+### &emsp;&emsp; \\\\d(/|-)\\\\d X
+### &emsp;&emsp; [.,] X
+### &emsp;&emsp; AND|&&& X
 
 ## How does this actually work?
 A RegEx cannot validate a partial string. So in order to determine whether the next character a user inputs is valid, the RegEx is transformed into a Discrete Finite Automaton (DFA). Then, we can determine whether a partial input ends up in a trap state of this DFA, which means that the input is not permitted.

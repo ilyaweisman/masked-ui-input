@@ -25,7 +25,7 @@ Mask: **DD/MM/YYYY** \
 Install the masked-ui-input package in your project.
 
 ```
-$ npm install masked-ui-input
+npm install @ilyaweisman/masked-ui-input --registry=https://npm.pkg.github.com/
 ````
 
 Import MaskedInput and call it with input props.
