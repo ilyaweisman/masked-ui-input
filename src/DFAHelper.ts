@@ -46,12 +46,11 @@ export class DFAHelper {
         }
         // If the character at the backspace index is a special character, keep removing characters from that position until 
         // a non-special character is removed.
-        backspaceIndex;
-        let index: number = backspaceIndex - 1;
-        while (index > 0 && /^\W$/.test(previousString.charAt(index - 1))) {
+        let index: number = backspaceIndex;
+        while (index > 1 && /^\W$/.test(previousString.charAt(index - 1))) {
             index--;
         }
-        return previousString.substring(0, index) + previousString.substring(backspaceIndex + 1);
+        return previousString.substring(0, index - 1) + previousString.substring(backspaceIndex + 1);
     }
 
     /**
@@ -59,14 +58,15 @@ export class DFAHelper {
      * @param inputString The string to be modified
      * @returns The modified string
      */
-    static removeLastCharacterIfSpecial(inputString: string): string {
+    static removeLastCharactersIfSpecial(inputString: string): string {
         if (inputString.length === 0) {
             return inputString;
         }
-        if ( /^\W$/.test(inputString.charAt(inputString.length - 1))) {
-            return inputString.substring(0, inputString.length - 1);
+        let lastCharacterIndex: number = inputString.length - 1;
+        while (lastCharacterIndex >= 0 && /^\W$/.test(inputString.charAt(lastCharacterIndex))) {
+            lastCharacterIndex--;
         }
-        return inputString;
+        return inputString.substring(0, lastCharacterIndex + 1);
     }
 
 }

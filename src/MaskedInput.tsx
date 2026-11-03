@@ -4,6 +4,7 @@ import { DFA } from './DFA';
 import { MaskHelper } from './MaskHelper';
 import { DFAHelper } from './DFAHelper';
 import { MaskedInputHelper } from './MaskedInputHelper';
+import { MaskedInputFacade, MaskedInputFacadeImpl } from './MaskedInputFacade';
 
 /**
  * The masked input component accepts four parameters:
@@ -29,7 +30,7 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
   const [value, setValue] = useState<string>('');
   const [transparentTextValue, setTransparentTextValue] = useState('');
   const [greyTextValue, setGreyTextValue] = useState('');
-  const [transparentTextDisplay, setTransparentTextDisplay] = useState('none');
+  const [transparentTextWidth, setTransparentTextWidth] = useState('0');
   const [greyColor, setGreyColor] = useState('grey');
 
 
@@ -38,60 +39,42 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
   const greyText: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
   const inputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement | null>(null);
 
-  let dfa: DFA | null = null;
-  let mask: string | undefined = undefined;
-  let backspaceNoSelection: boolean = false;
+  const maskedInputFacade: MaskedInputFacade = new MaskedInputFacadeImpl(regex, inputMask);
+  const enabled: boolean = maskedInputFacade.isEnabled();
 
   // Define functions.
   const setNewValue: (newValue: string) => void = (newValue: string) => {
     setValue(newValue);
     setParentValue?.(newValue);
     setTransparentTextValue(newValue);
-    setTransparentTextDisplay(newValue === '' ? 'none' : 'inherit');
-    const greyTextSubstring: string = mask?.substring(newValue.length) || '';
-    setGreyTextValue(greyTextSubstring);
+    setTransparentTextWidth(newValue === '' ? '0' : 'auto');
+    setGreyTextValue(maskedInputFacade.getGreyTextValue(newValue.length));
   }
 
   const handleFocus: React.FocusEventHandler<HTMLInputElement> = (e: React.FocusEvent<HTMLInputElement>) => {
-    const newValue: string | null | undefined = dfa?.getPartialStringIgnoreSpecialCharacters(e.target.value);
-    setNewValue(newValue ?? value);
+    setNewValue(maskedInputFacade.adjustValue(e.target.value, value, false, false));
   }
 
   const handleBlur: React.FocusEventHandler<HTMLInputElement> = (e: React.FocusEvent<HTMLInputElement>) => {
-    setNewValue(DFAHelper.removeLastCharacterIfSpecial(e.target.value));
+    setNewValue(maskedInputFacade.adjustValue(e.target.value, value, false, true));
   }
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    backspaceNoSelection = !MaskedInputHelper.isBackspaceInputWithSelection(e);
+    maskedInputFacade.registerKeyDown(e);
   }
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // If the input was a backspace with no highlights, and the character removed was a special character, then keep removing 
-    // characters from that position until a non-special character is removed.
-    let targetValue: string = backspaceNoSelection ? DFAHelper.handleBackspace(e.target.value, value) : e.target.value;
-    // Only allow the value to be updated if the new value is a valid partial string of the DFA.
-    const newValue: string | null | undefined = dfa?.getPartialStringIgnoreSpecialCharacters(targetValue);
-    setNewValue(newValue ?? value);
+    setNewValue(maskedInputFacade.adjustValue(e.target.value, value, true, false));
   }
 
-  
-  try {
-    dfa = RegexToDFAConverter.convertRegexToDFA(regex);
-    mask = MaskHelper.getMask(dfa, inputMask);
-  } catch (error) {
-    console.error(error);
-  }
-
-  const backgroundBoxStyle: CSSProperties = MaskedInputHelper.backgroundBoxStyle(style, !!dfa);
-  const transparentTextStyle: CSSProperties = MaskedInputHelper.transparentTextStyle(style, transparentTextDisplay);
-  const greyTextStyle: CSSProperties = MaskedInputHelper.greyTextStyle(style, greyColor);
+  const [backgroundBoxStyle, transparentTextStyle, greyTextStyle] = maskedInputFacade.getStyles(style, transparentTextWidth, greyColor);
 
   useEffect(() => {
     if (inputRef.current) {
       const placeholderStyles: CSSStyleDeclaration = window.getComputedStyle(inputRef.current, '::placeholder');
       setGreyColor(placeholderStyles.getPropertyValue('color'));
     }
-    setGreyTextValue(mask || '');
+    setGreyTextValue(maskedInputFacade.getGreyTextValue(0));
   }, []);
 
   return (
@@ -102,11 +85,11 @@ function MaskedInput({ setParentValue, regex, mask: inputMask, style }: MaskedIn
         name="myInput"
         type="text"
         style={{...style, backgroundColor: 'transparent'}}
-        value={dfa ? value : undefined}
-        onChange={dfa ? handleChange : undefined}
-        onKeyDown={dfa ? handleKeyDown : undefined}
-        onFocus={dfa ? handleFocus : undefined}
-        onBlur={dfa ? handleBlur : undefined}
+        value={enabled ? value : undefined}
+        onChange={enabled ? handleChange : undefined}
+        onKeyDown={enabled ? handleKeyDown : undefined}
+        onFocus={enabled ? handleFocus : undefined}
+        onBlur={enabled ? handleBlur : undefined}
         placeholder=""
       />
       <div className="backgroundBox" ref={backgroundBox} style={backgroundBoxStyle}>

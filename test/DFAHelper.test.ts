@@ -75,21 +75,25 @@ describe('Handle a backspace input', () => {
     test('Multiple special characters', () => {
         const previousString: string = 'number: (+ 61)';
         const currentString: string = 'number: ( 61)';
-        expect(DFAHelper.handleBackspace(currentString, previousString)).toEqual('number 61)');
+        expect(DFAHelper.handleBackspace(currentString, previousString)).toEqual('numbe 61)');
     });
 });
 
 describe('Remove the last character if it is a special character', () => {
     test('Empty string', () => {
         const inputString: string = '';
-        expect(DFAHelper.removeLastCharacterIfSpecial(inputString)).toEqual('');
+        expect(DFAHelper.removeLastCharactersIfSpecial(inputString)).toEqual('');
     });
     test('Last character is not a special character', () => {
         const inputString: string = 'abc';
-        expect(DFAHelper.removeLastCharacterIfSpecial(inputString)).toEqual('abc');
+        expect(DFAHelper.removeLastCharactersIfSpecial(inputString)).toEqual('abc');
     });
     test('Last character is a special character', () => {
         const inputString: string = 'abc!';
-        expect(DFAHelper.removeLastCharacterIfSpecial(inputString)).toEqual('abc');
+        expect(DFAHelper.removeLastCharactersIfSpecial(inputString)).toEqual('abc');
+    });
+    test('Three last characters are special characters', () => {
+        const inputString: string = 'abc!#?';
+        expect(DFAHelper.removeLastCharactersIfSpecial(inputString)).toEqual('abc');
     });
 });
