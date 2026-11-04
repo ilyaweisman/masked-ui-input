@@ -1,5 +1,5 @@
 # Masked UI Input Component
-This is an input component which requires any user input to comply with a specified pattern. \
+This is a React input component which requires any user input to comply with a specified pattern. \
 The developer utilising this component specifies a regular expression (RegEx), and the component prevents the user from inputting any partial string which does not fit the RegEx pattern. \
 Furthermore, the component generates grey placeholder text (alternatively, the placeholder can be specified by the developer) which acts as a guide the user can reference as they type. \
 Any special characters in the pattern get auto-filled.
